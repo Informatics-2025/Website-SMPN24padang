@@ -31,12 +31,16 @@ import {
     UserCircle,
     Target,
     Shirt,
-    Settings,
     Award,
     LogOut,
     Youtube,
-    Menu,
-    MessageCircleQuestion, // Added for FAQ
+    MessageCircleQuestion,
+    MessageCircleMore,
+    MessageSquareTextIcon, // Added for FAQ
+    Megaphone,
+    Recycle,
+    Archive,
+    Trash2,
 } from 'lucide-react';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Button } from '@/components/ui/button';
@@ -108,13 +112,21 @@ export default function AdminLayout({
         },
         { href: '/admin/staff', label: 'Guru & Staf', icon: Users },
         {
-            label: 'Publikasi',
+            label: 'Artikel',
             icon: Newspaper,
             subItems: [
-                { href: '/admin/news', label: 'Berita' },
-                { href: '/admin/announcements', label: 'Pengumuman' },
-                { href: '/admin/sispendik', label: 'Sispendik' },
-                { href: '/admin/banksampah', label: 'Bank Sampah' },
+                { href: '/admin/news', label: 'Berita', icon: Newspaper },
+                {
+                    href: '/admin/announcements',
+                    label: 'Pengumuman',
+                    icon: Megaphone,
+                },
+                { href: '/admin/sispendik', label: 'Sispendik', icon: Recycle },
+                {
+                    href: '/admin/banksampah',
+                    label: 'Bank Sampah',
+                    icon: Archive,
+                },
             ],
         },
         { href: '/admin/achievements', label: 'Prestasi', icon: Trophy },
@@ -132,6 +144,11 @@ export default function AdminLayout({
         },
         { href: '/admin/contact', label: 'Kontak', icon: Phone },
         { href: '/admin/faq', label: 'FAQ', icon: MessageCircleQuestion },
+        {
+            href: '/admin/comments',
+            label: 'Komentar',
+            icon: MessageSquareTextIcon,
+        },
     ];
 
     const [collapsibleOpenStates, setCollapsibleOpenStates] = React.useState<
@@ -181,7 +198,7 @@ export default function AdminLayout({
                                     Admin
                                 </span>
                             </div>
-                            <div className="flex items-center gap-2 pr-4">
+                            <div className="flex items-center gap-2">
                                 <Link
                                     href="/admin/profile"
                                     className="group-data-[state=collapsed]:hidden"
@@ -284,9 +301,14 @@ export default function AdminLayout({
                                                                                     }
                                                                                 }}
                                                                             >
-                                                                                {
-                                                                                    subItem.label
-                                                                                }
+                                                                                <span className="flex items-center">
+                                                                                    {subItem.icon && (
+                                                                                        <subItem.icon className="mr-2 h-4 w-4" />
+                                                                                    )}
+                                                                                    {
+                                                                                        subItem.label
+                                                                                    }
+                                                                                </span>
                                                                             </SidebarMenuSubButton>
                                                                         </SidebarMenuSubItem>
                                                                     ),

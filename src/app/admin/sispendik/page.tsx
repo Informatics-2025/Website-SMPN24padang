@@ -63,7 +63,7 @@ export default async function SispendikAdminPage() {
         <div className="space-y-6 print:space-y-0">
             <div className="print:hidden">
                 <h2 className="text-3xl font-bold tracking-tight">
-                    Sispendik Bank Sampah
+                    Sipendig SMPN 24 Padang
                 </h2>
                 <p className="text-muted-foreground">
                     Kelola data sampah per kelas dan per guru, serta lihat

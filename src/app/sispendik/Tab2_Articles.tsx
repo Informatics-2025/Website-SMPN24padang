@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { getPublicWasteNews } from '@/app/admin/banksampah/actions';
 import { WasteNewsItem } from '@/app/admin/banksampah/page'; // Re-using type from admin page
-import SispendikSkeleton from './sispendik-skeleton';
+import SkeletonLoader from '@/components/skeleton-loader';
 
 export default function Tab2_Articles() { // Renamed component
     const [news, setNews] = useState<WasteNewsItem[]>([]);
@@ -28,7 +28,7 @@ export default function Tab2_Articles() { // Renamed component
     }, []);
 
     if (loading) {
-        return <SispendikSkeleton />;
+        return <SkeletonLoader />;
     }
 
     return (

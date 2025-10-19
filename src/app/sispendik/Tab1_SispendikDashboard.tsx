@@ -36,6 +36,7 @@ import {
     CartesianGrid,
     Cell,
 } from 'recharts';
+import { Spinner } from '@/components/ui/spinner';
 
 const MONTHS = [
     'Januari',
@@ -122,6 +123,7 @@ export default function SispendikDashboard() {
     const [topRankerType, setTopRankerType] = useState<'kelas' | 'guru'>(
         'kelas',
     );
+    const [loading, setLoading] = useState(true);
 
     const maxClassTotal =
         classRanking.length > 0
@@ -137,6 +139,7 @@ export default function SispendikDashboard() {
 
     useEffect(() => {
         const fetchData = async () => {
+            setLoading(true);
             const [aggData, rankData, summary, topWasteRes, guruRankData] =
                 await Promise.all([
                     getAggregatedData(month, year),
@@ -187,13 +190,19 @@ export default function SispendikDashboard() {
             } else {
                 setGuruRanking([]);
             }
+            setLoading(false);
         };
 
         fetchData();
     }, [month, year, levelFilter]);
 
     return (
-        <div className="space-y-8 pt-6">
+        <div className="space-y-8 pt-6 relative">
+            {loading && (
+                <div className="absolute inset-0 bg-background/50 flex items-center justify-center z-20">
+                    <Spinner className="w-10 h-10" />
+                </div>
+            )}
             {/* Top Cards */}
             <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
                 <Card className="bg-green-100 dark:bg-green-900">
@@ -231,7 +240,7 @@ export default function SispendikDashboard() {
                                     )
                                 }
                             >
-                                Lihat {' '}
+                                Lihat{' '}
                                 {topRankerType === 'kelas'
                                     ? 'Guru'
                                     : 'Kelas'}
@@ -260,7 +269,7 @@ export default function SispendikDashboard() {
                                         <p className="text-sm font-normal text-muted-foreground">
                                             {Number(g.totalKg || 0).toFixed(
                                                 2,
-                                            )}{ ' '}
+                                            )}{' '}
                                             kg
                                         </p>
                                     </div>
@@ -287,7 +296,7 @@ export default function SispendikDashboard() {
                                         <p className="text-sm text-muted-foreground">
                                             {Number(w.totalKg || 0).toFixed(
                                                 2,
-                                            )}{ ' '}
+                                            )}{' '}
                                             kg
                                         </p>
                                     </div>
@@ -462,7 +471,7 @@ export default function SispendikDashboard() {
                                                 <TableCell className="text-right">
                                                     {Number(
                                                         c.total || 0,
-                                                    ).toFixed(2)}{ ' '}
+                                                    ).toFixed(2)}{' '}
                                                     kg
                                                 </TableCell>
                                                 <TableCell className="text-right">
@@ -584,7 +593,7 @@ export default function SispendikDashboard() {
                                                 <TableCell className="text-right">
                                                     {Number(
                                                         g.totalKg || 0,
-                                                    ).toFixed(2)}{ ' '}
+                                                    ).toFixed(2)}{' '}
                                                     kg
                                                 </TableCell>
                                             </TableRow>

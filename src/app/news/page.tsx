@@ -26,11 +26,8 @@ const getAllNews = cache(
     { tags: ['news-collection'] },
 );
 
-
-
 export default async function NewsPage() {
     const newsItems = await getAllNews();
-    
 
     return (
         <div className="container mx-auto px-4 py-12 md:py-24">
@@ -44,8 +41,6 @@ export default async function NewsPage() {
                 </p>
             </div>
 
-            
-
             <section className="mt-12">
                 <h2 className="font-headline text-3xl font-bold text-primary mb-8">
                     Berita Lainnya
@@ -58,7 +53,7 @@ export default async function NewsPage() {
                                 className="overflow-hidden transition-shadow duration-300 hover:shadow-xl flex flex-col"
                             >
                                 <CardHeader className="p-0">
-                                    <Link href={`/articles/${item.id}`}>
+                                    <Link href={`/news/${item.id}`}>
                                         <Image
                                             src={
                                                 item.imageUrl ||
@@ -84,7 +79,7 @@ export default async function NewsPage() {
                                     </p>
                                     <CardTitle className="font-headline text-xl font-bold text-primary">
                                         <Link
-                                            href={`/articles/${item.id}`}
+                                            href={`/news/${item.id}`}
                                             className="hover:underline"
                                         >
                                             {item.title}
@@ -98,7 +93,7 @@ export default async function NewsPage() {
                                         asChild
                                         className="mt-4 p-0 self-start text-accent hover:text-accent/80"
                                     >
-                                        <Link href={`/articles/${item.id}`}>
+                                        <Link href={`/news/${item.id}`}>
                                             Baca Lebih Lanjut{' '}
                                             <ArrowRight className="ml-1 h-4 w-4" />
                                         </Link>

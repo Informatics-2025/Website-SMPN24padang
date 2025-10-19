@@ -1,3 +1,4 @@
+import { users } from './schema/index';
 export * from './schema/index';
 import {
     pgTable,
@@ -8,7 +9,64 @@ import {
     serial,
     uniqueIndex,
     decimal,
+    index,
 } from 'drizzle-orm/pg-core';
+import { relations } from 'drizzle-orm';
+
+export const news = pgTable('news', {
+    id: varchar('id').primaryKey(),
+    title: text('title').notNull(),
+    description: text('description').notNull(),
+    date: text('date').notNull(),
+    imageUrl: text('imageUrl'),
+    createdAt: timestamp('createdAt').defaultNow().notNull(),
+    updatedAt: timestamp('updatedAt').defaultNow().notNull(),
+});
+
+export const comments = pgTable('comments', {
+    id: serial('id').primaryKey(),
+    content: text('content').notNull(),
+    userId: text('user_id').references(() => users.id, { onDelete: 'cascade' }), // Nullable for anonymous
+    authorName: text('author_name'), // Required if userId is null
+    contentType: text('content_type').notNull(),
+    contentId: text('content_id').notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => ({
+    contentIndex: index('content_idx').on(table.contentType, table.contentId),
+}));
+
+export const likes = pgTable('likes', {
+    id: serial('id').primaryKey(),
+    userId: text('user_id').references(() => users.id, { onDelete: 'cascade' }), // Nullable for anonymous
+    anonymousId: text('anonymous_id'), // For tracking anonymous users
+    contentType: text('content_type').notNull(),
+    contentId: text('content_id').notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => ({
+    contentIndex: index('like_content_idx').on(table.contentType, table.contentId),
+}));
+
+// RELATIONS
+
+export const usersRelations = relations(users, ({ many }) => ({
+	comments: many(comments),
+    likes: many(likes),
+}));
+
+export const commentsRelations = relations(comments, ({ one }) => ({
+	user: one(users, {
+		fields: [comments.userId],
+		references: [users.id],
+	}),
+}));
+
+export const likesRelations = relations(likes, ({ one }) => ({
+	user: one(users, {
+		fields: [likes.userId],
+		references: [users.id],
+	}),
+}));
+
 
 // `curriculums` should map to the SQL table named `curriculums`.
 export const curriculums = pgTable('curriculums', {
@@ -95,5 +153,3 @@ export const wasteDocumentation = pgTable('waste_documentation', {
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
 });
-
-

@@ -11,12 +11,12 @@ export default function SispendikPage() {
                 <div className="flex items-center justify-center gap-2">
                     <Recycle className="h-8 w-8 text-green-600" />
                     <h2 className="text-3xl font-bold tracking-tight">
-                        Sispendik Bank Sampah
+                        Sispendig SMPN 24 Padang
                     </h2>
                 </div>
                 <p className="text-muted-foreground">
-                    Pantau data sampah, lihat artikel terbaru, dan jelajahi
-                    dokumentasi kegiatan.
+                    Pantau data sampah, lihat edukasi seputar sampah, dan
+                    jelajahi dokumentasi kegiatan.
                 </p>
             </div>
 
@@ -32,7 +32,7 @@ export default function SispendikPage() {
                         value="news"
                         className="font-bold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-none"
                     >
-                        Artikel
+                        Edukasi
                     </TabsTrigger>
                     <TabsTrigger
                         value="documentation"

@@ -17,7 +17,6 @@ import * as Collapsible from '@radix-ui/react-collapsible';
 import {
     Home,
     User,
-    BookOpen,
     Trophy,
     Camera,
     Menu,
@@ -28,16 +27,15 @@ import {
     Users,
     Award,
     Network,
-    Wrench,
     MapPin,
     Newspaper,
     Shirt,
-    Swords,
     GraduationCap,
     ShieldCheck,
     Megaphone,
-    Video,
     Recycle,
+    Youtube,
+    YoutubeIcon,
 } from 'lucide-react';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { cn } from '@/lib/utils';
@@ -101,7 +99,7 @@ export default function Header({ contactInfo }: HeaderProps) {
             subLinks: [
                 { href: '/news', label: 'Berita', icon: Newspaper },
                 { href: '/pengumuman', label: 'Pengumuman', icon: Megaphone },
-                { href: '/sispendik', label: 'Sispendik', icon: Recycle },
+                { href: '/sispendik', label: 'Sispendig', icon: Recycle },
             ],
         },
         { href: '/achievements', label: 'Prestasi', icon: Trophy },
@@ -111,7 +109,7 @@ export default function Header({ contactInfo }: HeaderProps) {
             icon: Camera,
             subLinks: [
                 { href: '/gallery', label: 'Galeri Foto', icon: Camera },
-                { href: '/videos', label: 'Galeri Video', icon: Video },
+                { href: '/videos', label: 'Galeri Video', icon: YoutubeIcon },
             ],
         },
         { href: '/contact', label: 'Kontak', icon: Phone },

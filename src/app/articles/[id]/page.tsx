@@ -1,9 +1,11 @@
-
 import { getWasteNewsById } from '@/app/admin/banksampah/actions';
 import { notFound } from 'next/navigation';
-import Image from 'next/image';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { ArrowLeft } from 'lucide-react';
+import { PDFViewer } from '@/components/pdf-viewer';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Calendar, ExternalLink } from 'lucide-react';
+import { InteractionSection } from '@/components/interactions/InteractionSection';
 
 export default async function ArticlePage({ params }: { params: { id: string } }) {
     const articleId = parseInt(params.id, 10);
@@ -17,38 +19,50 @@ export default async function ArticlePage({ params }: { params: { id: string } }
         notFound();
     }
 
+    const backButton = (
+        <Link href="/sispendik" className="mb-6 inline-block">
+            <Button variant="outline">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Kembali ke Sispendik
+            </Button>
+        </Link>
+    );
+
+    if (article.googleDriveUrl) {
+        return (
+            <div className="container mx-auto py-6">
+                {backButton}
+                <PDFViewer
+                    title={article.title}
+                    description={article.description}
+                    url={article.googleDriveUrl}
+                />
+                <InteractionSection 
+                    contentType="waste_news" 
+                    contentId={article.id.toString()} 
+                    pathname={`/articles/${article.id}`} 
+                />
+            </div>
+        );
+    }
+
+    // Fallback for articles without a PDF link, showing title and description.
     return (
         <div className="container mx-auto py-10">
+            {backButton}
             <Card className="max-w-4xl mx-auto">
                 <CardHeader>
-                    <div className="relative w-full h-96 mb-6">
-                        <Image
-                            src={article.previewUrl || 'https://placehold.co/1200x800.png'}
-                            alt={article.title}
-                            fill
-                            className="object-cover rounded-t-lg"
-                        />
-                    </div>
                     <CardTitle className="text-4xl font-bold leading-tight">{article.title}</CardTitle>
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground pt-2">
-                        {article.createdAt && (
-                            <div className="flex items-center gap-1.5">
-                                <Calendar className="h-4 w-4" />
-                                <span>{new Date(article.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
-                            </div>
-                        )}
-                        {article.googleDriveUrl && (
-                             <a href={article.googleDriveUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 hover:text-primary transition-colors">
-                                <ExternalLink className="h-4 w-4" />
-                                <span>Lihat di Google Drive</span>
-                            </a>
-                        )}
-                    </div>
                 </CardHeader>
-                <CardContent className="prose prose-lg max-w-none">
+                <CardContent className="prose prose-lg max-w-none mt-4">
                     <p>{article.description}</p>
                 </CardContent>
             </Card>
+            <InteractionSection 
+                contentType="waste_news" 
+                contentId={article.id.toString()} 
+                pathname={`/articles/${article.id}`} 
+            />
         </div>
     );
 }

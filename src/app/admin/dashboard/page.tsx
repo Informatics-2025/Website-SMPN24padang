@@ -1,5 +1,13 @@
 import { db } from '@/lib/db';
-import { announcements, news, galleryItems, statistics, staff, videos, achievements } from '@/lib/db/schema';
+import {
+    announcements,
+    news,
+    galleryItems,
+    statistics,
+    staff,
+    videos,
+    achievements,
+} from '@/lib/db/schema';
 import { count } from 'drizzle-orm';
 import Link from 'next/link';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
@@ -87,9 +95,10 @@ const menuItems = [
     },
     {
         href: '/admin/sispendik',
-        label: 'Sispendik',
+        label: 'Sispendig',
         icon: LayoutDashboard,
-        description: 'Kelola data dan laporan dari sistem bank sampah Sispendik.',
+        description:
+            'Kelola data dan laporan dari sistem bank sampah Sispendik.',
     },
     {
         href: '/admin/achievements',
@@ -124,28 +133,40 @@ const menuItems = [
 ];
 
 async function getDashboardStats() {
-  const statsData = await db.select().from(statistics).limit(1);
-  const newsCount = await db.select({ value: count() }).from(news);
-  const announcementsCount = await db.select({ value: count() }).from(announcements);
-  const galleryCount = await db.select({ value: count() }).from(galleryItems);
-  const achievementsCount = await db.select({ value: count() }).from(achievements);
-  const videosCount = await db.select({ value: count() }).from(videos);
+    const statsData = await db.select().from(statistics).limit(1);
+    const newsCount = await db.select({ value: count() }).from(news);
+    const announcementsCount = await db
+        .select({ value: count() })
+        .from(announcements);
+    const galleryCount = await db.select({ value: count() }).from(galleryItems);
+    const achievementsCount = await db
+        .select({ value: count() })
+        .from(achievements);
+    const videosCount = await db.select({ value: count() }).from(videos);
 
-  const stats = statsData[0];
+    const stats = statsData[0];
 
-  return {
-    students: stats?.students ?? 0,
-    teachers: stats?.teachers ?? 0,
-    staff: stats?.staff ?? 0,
-    news: newsCount[0].value,
-    announcements: announcementsCount[0].value,
-    gallery: galleryCount[0].value,
-    achievements: achievementsCount[0].value,
-    videos: videosCount[0].value,
-  };
+    return {
+        students: stats?.students ?? 0,
+        teachers: stats?.teachers ?? 0,
+        staff: stats?.staff ?? 0,
+        news: newsCount[0].value,
+        announcements: announcementsCount[0].value,
+        gallery: galleryCount[0].value,
+        achievements: achievementsCount[0].value,
+        videos: videosCount[0].value,
+    };
 }
 
-function StatCard({ title, value, icon: Icon }: { title: string, value: string | number, icon: LucideIcon }) {
+function StatCard({
+    title,
+    value,
+    icon: Icon,
+}: {
+    title: string;
+    value: string | number;
+    icon: LucideIcon;
+}) {
     return (
         <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -156,21 +177,21 @@ function StatCard({ title, value, icon: Icon }: { title: string, value: string |
                 <div className="text-2xl font-bold">{value}</div>
             </CardContent>
         </Card>
-    )
+    );
 }
 
 export default async function AdminDashboardPage() {
     const stats = await getDashboardStats();
 
     const statItems = [
-        { title: "Siswa", value: stats.students, icon: Users },
-        { title: "Guru", value: stats.teachers, icon: UserCheck },
-        { title: "Staf", value: stats.staff, icon: UserCog },
-        { title: "Berita", value: stats.news, icon: Newspaper },
-        { title: "Pengumuman", value: stats.announcements, icon: Megaphone },
-        { title: "Galeri", value: stats.gallery, icon: ImageIcon },
-        { title: "Prestasi", value: stats.achievements, icon: Trophy },
-        { title: "Video", value: stats.videos, icon: Video },
+        { title: 'Siswa', value: stats.students, icon: Users },
+        { title: 'Guru', value: stats.teachers, icon: UserCheck },
+        { title: 'Staf', value: stats.staff, icon: UserCog },
+        { title: 'Berita', value: stats.news, icon: Newspaper },
+        { title: 'Pengumuman', value: stats.announcements, icon: Megaphone },
+        { title: 'Galeri', value: stats.gallery, icon: ImageIcon },
+        { title: 'Prestasi', value: stats.achievements, icon: Trophy },
+        { title: 'Video', value: stats.videos, icon: Video },
     ];
 
     return (
@@ -185,7 +206,7 @@ export default async function AdminDashboardPage() {
             </div>
 
             <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-                {statItems.map(item => (
+                {statItems.map((item) => (
                     <StatCard key={item.title} {...item} />
                 ))}
             </div>
@@ -195,7 +216,8 @@ export default async function AdminDashboardPage() {
                     Kelola Konten
                 </h2>
                 <p className="mt-2 text-lg text-muted-foreground">
-                    Pilih salah satu menu di bawah ini untuk mengubah konten website.
+                    Pilih salah satu menu di bawah ini untuk mengubah konten
+                    website.
                 </p>
             </div>
 

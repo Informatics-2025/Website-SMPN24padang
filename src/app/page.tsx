@@ -213,7 +213,7 @@ async function LatestNews() {
                         >
                             <div className="relative w-full aspect-video">
                                 <Link
-                                    href={`/articles/${item.id}`}
+                                    href={`/news/${item.id}`}
                                     className="absolute inset-0"
                                 >
                                     <Image
@@ -242,7 +242,7 @@ async function LatestNews() {
                                     </p>
                                     <CardTitle className="font-headline text-lg font-bold">
                                         <Link
-                                            href={`/articles/${item.id}`}
+                                            href={`/news/${item.id}`}
                                             className="text-foreground hover:text-primary hover:underline"
                                         >
                                             {item.title}
@@ -257,7 +257,7 @@ async function LatestNews() {
                                     asChild
                                     className="mt-4 p-0 self-start text-primary hover:text-primary/80"
                                 >
-                                    <Link href={`/articles/${item.id}`}>
+                                    <Link href={`/news/${item.id}`}>
                                         Baca Lebih Lanjut{' '}
                                         <ArrowRight className="ml-1 h-4 w-4" />
                                     </Link>
