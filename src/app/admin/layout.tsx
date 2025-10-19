@@ -35,12 +35,10 @@ import {
     LogOut,
     Youtube,
     MessageCircleQuestion,
-    MessageCircleMore,
     MessageSquareTextIcon, // Added for FAQ
     Megaphone,
     Recycle,
     Archive,
-    Trash2,
 } from 'lucide-react';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Button } from '@/components/ui/button';

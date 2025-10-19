@@ -60,9 +60,10 @@ export default async function NewsArticlePage({ params }: { params: { id: string
         
 
         <div
-          className="prose prose-lg max-w-none dark:prose-invert"
-          dangerouslySetInnerHTML={{ __html: articleData.description.replace(/\n/g, '<br />') }}
-        />
+          className="prose prose-lg max-w-none dark:prose-invert whitespace-pre-wrap"
+        >
+          {articleData.description}
+        </div>
       </article>
 
       <InteractionSection 

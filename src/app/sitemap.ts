@@ -1,6 +1,10 @@
 import { MetadataRoute } from 'next';
+import { getAllNewsIds } from './actions';
+import { getAllWasteNewsIds } from './admin/banksampah/actions';
 
-export default function sitemap(): MetadataRoute.Sitemap {
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://smpn24padang.sch.id';
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const staticRoutes = [
         '',
         '/achievements',
@@ -21,11 +25,23 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ];
 
     const staticUrls = staticRoutes.map((route) => ({
-        url: `https://smpn24padang.sch.id${route}`,
+        url: `${siteUrl}${route}`,
         lastModified: new Date(),
     }));
 
-    // TODO: Add dynamic routes for news and articles
+    // Dynamic news articles
+    const newsIds = await getAllNewsIds();
+    const newsUrls = newsIds.map(item => ({
+        url: `${siteUrl}/news/${item.id}`,
+        lastModified: new Date(), // Or a date from the article if available
+    }));
 
-    return [...staticUrls];
+    // Dynamic waste news articles
+    const wasteNewsIds = await getAllWasteNewsIds();
+    const wasteNewsUrls = wasteNewsIds.map(item => ({
+        url: `${siteUrl}/articles/${item.id}`,
+        lastModified: new Date(),
+    }));
+
+    return [...staticUrls, ...newsUrls, ...wasteNewsUrls];
 }

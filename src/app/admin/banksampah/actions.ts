@@ -268,3 +268,13 @@ export async function getPublicWasteDocumentation() {
         orderBy: (docs, { desc }) => [desc(docs.createdAt)],
     });
 }
+
+export async function getAllWasteNewsIds() {
+    try {
+        const ids = await db.select({ id: wasteNews.id }).from(wasteNews);
+        return ids.map((item) => ({ id: item.id }));
+    } catch (error) {
+        console.error('Error fetching all waste news IDs:', error);
+        return [];
+    }
+}

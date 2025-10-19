@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -47,6 +48,7 @@ interface MasterDataClientProps {
 export default function MasterDataClient({
     initialData,
 }: MasterDataClientProps) {
+    const router = useRouter();
     const { toast } = useToast();
     const [jenisSampahList, setJenisSampahList] =
         useState<JenisSampah[]>(initialData);
@@ -89,7 +91,7 @@ export default function MasterDataClient({
             setFormData({ namaSampah: '', hargaPerKg: '' });
             setEditing(null);
             // Refresh data after successful operation
-            window.location.reload();
+            router.refresh();
         } catch (error: any) {
             toast({
                 title: 'Error',
@@ -116,7 +118,7 @@ export default function MasterDataClient({
                     description: 'Jenis sampah berhasil dihapus',
                 });
                 // Refresh data after successful deletion
-                window.location.reload();
+                router.refresh();
             } else {
                 throw new Error(result.error);
             }

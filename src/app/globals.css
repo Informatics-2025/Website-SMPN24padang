@@ -1,10 +1,8 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-body {
-    font-family: Arial, Helvetica, sans-serif;
-}
 
 @layer base {
     :root {
@@ -32,8 +30,10 @@ body {
         --chart-3: 197 37% 24%;
         --chart-4: 43 74% 66%;
         --chart-5: 27 87% 67%;
-        --radius: 0.5rem;
+        /* Softer radius for a more modern look */
+        --radius: 0.75rem;
     }
+
     .dark {
         --background: 224 71.4% 4.1%;
         --foreground: 0 0% 98%;
@@ -55,14 +55,34 @@ body {
         --input: 215 27.9% 16.9%;
         --ring: 120 100% 30%;
     }
-}
 
-@layer base {
-    * {
-        @apply border-border;
+    html {
+        scroll-behavior: smooth;
+        -webkit-tap-highlight-color: transparent;
     }
+
     body {
         @apply bg-background text-foreground overflow-x-hidden;
+        font-family: 'Inter', sans-serif;
+        font-feature-settings: 'rlig' 1, 'calt' 1; /* Enable nice font features */
+    }
+
+    /* Fluid typography for responsive headings */
+    h1,
+    .h1 {
+        font-size: clamp(2.25rem, 5vw, 3rem);
+    }
+    h2,
+    .h2 {
+        font-size: clamp(1.875rem, 4vw, 2.5rem);
+    }
+    h3,
+    .h3 {
+        font-size: clamp(1.5rem, 3vw, 2rem);
+    }
+    h4,
+    .h4 {
+        font-size: clamp(1.25rem, 2.5vw, 1.5rem);
     }
 }
 
@@ -146,6 +166,15 @@ body {
 }
 
 @layer components {
+    /* Add subtle transitions to common components for a smoother feel */
+    .card,
+    .btn,
+    button,
+    input,
+    textarea {
+        @apply transition-all duration-200 ease-in-out;
+    }
+
     /* tombol pan (mobile) */
     .pan-btn {
         @apply w-10 h-10 rounded-full flex items-center justify-center shadow-lg transition-transform;
