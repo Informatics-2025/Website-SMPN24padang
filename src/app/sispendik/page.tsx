@@ -1,5 +1,5 @@
-import { Recycle } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Recycle } from 'lucide-react';
 import Tab1_SispendikDashboard from './Tab1_SispendikDashboard';
 import Tab2_Articles from './Tab2_Articles';
 import Tab3_Documentation from './Tab3_Documentation';
@@ -20,14 +20,8 @@ export default function SispendikPage() {
                 </p>
             </div>
 
-            <Tabs defaultValue="dashboard" className="w-full mt-6">
+            <Tabs defaultValue="news" className="w-full mt-6">
                 <TabsList className="grid w-full grid-cols-3 bg-muted p-0 border-b">
-                    <TabsTrigger
-                        value="dashboard"
-                        className="font-bold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-none"
-                    >
-                        Rekapitulasi Setoran
-                    </TabsTrigger>
                     <TabsTrigger
                         value="news"
                         className="font-bold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-none"
@@ -40,15 +34,21 @@ export default function SispendikPage() {
                     >
                         Dokumentasi
                     </TabsTrigger>
+                    <TabsTrigger
+                        value="dashboard"
+                        className="font-bold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-none"
+                    >
+                        Rekapitulasi Setoran
+                    </TabsTrigger>
                 </TabsList>
-                <TabsContent value="dashboard">
-                    <Tab1_SispendikDashboard />
-                </TabsContent>
                 <TabsContent value="news">
                     <Tab2_Articles />
                 </TabsContent>
                 <TabsContent value="documentation">
                     <Tab3_Documentation />
+                </TabsContent>
+                <TabsContent value="dashboard">
+                    <Tab1_SispendikDashboard />
                 </TabsContent>
             </Tabs>
         </div>

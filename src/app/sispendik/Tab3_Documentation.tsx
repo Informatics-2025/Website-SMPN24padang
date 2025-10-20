@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { getPublicWasteDocumentation } from '@/app/admin/banksampah/actions';
-import { WasteDocumentationItem } from '@/app/admin/banksampah/page'; // Re-using type
+import { WasteDocumentationItem } from '@/types/banksampah';
 import { YouTubeEmbed, getYouTubeVideoId } from '@/components/youtube-embed'; // Corrected import casing
 import SkeletonLoader from '@/components/skeleton-loader';
 import { PlayCircle, ZoomIn } from 'lucide-react';

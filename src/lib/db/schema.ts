@@ -153,3 +153,11 @@ export const wasteDocumentation = pgTable('waste_documentation', {
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
 });
+
+export const wasteVideos = pgTable('waste_videos', {
+    id: serial('id').primaryKey(),
+    title: text('title').notNull(),
+    youtubeUrl: text('youtube_url').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
+});

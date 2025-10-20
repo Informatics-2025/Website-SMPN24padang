@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { db } from '@/lib/db';
-import { wasteNews, wasteDocumentation } from '@/lib/db/schema';
+import { wasteNews, wasteDocumentation, wasteVideos } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 import { z } from 'zod';
 import { put, del } from '@vercel/blob';
@@ -27,6 +27,15 @@ const CreateNewsSchema = NewsSchema.omit({ id: true });
 const UpdateNewsSchema = NewsSchema;
 const CreateDocSchema = DocSchema.omit({ id: true });
 const UpdateDocSchema = DocSchema;
+
+const VideoSchema = z.object({
+    id: z.string(),
+    title: z.string().min(1, 'Title is required'),
+    youtubeUrl: z.string().url('Invalid YouTube URL'),
+});
+
+const CreateVideoSchema = VideoSchema.omit({ id: true });
+const UpdateVideoSchema = VideoSchema;
 
 // Waste News Actions
 export async function getWasteNews() {
@@ -250,6 +259,76 @@ export async function deleteWasteDocumentation(id: number) {
     }
 }
 
+// Waste Video Actions
+export async function getWasteVideos() {
+    return await db.query.wasteVideos.findMany({
+        orderBy: (videos, { desc }) => [desc(videos.createdAt)],
+    });
+}
+
+export async function createWasteVideo(prevState: any, formData: FormData) {
+    const validatedFields = CreateVideoSchema.safeParse({
+        title: formData.get('title'),
+        youtubeUrl: formData.get('youtubeUrl'),
+    });
+
+    if (!validatedFields.success) {
+        return { success: false, message: 'Validasi gagal', errors: validatedFields.error.flatten().fieldErrors };
+    }
+
+    try {
+        await db.insert(wasteVideos).values({
+            title: validatedFields.data.title,
+            youtubeUrl: validatedFields.data.youtubeUrl,
+        });
+        revalidatePath('/admin/banksampah');
+        return { success: true, message: 'Video berhasil ditambahkan' };
+    } catch (error) {
+        console.error('Error creating waste video:', error);
+        if (error instanceof Error) {
+            return { success: false, message: `Gagal menambahkan video: ${error.message}` };
+        }
+        return { success: false, message: 'Gagal menambahkan video karena error tidak diketahui.' };
+    }
+}
+
+export async function updateWasteVideo(id: number, prevState: any, formData: FormData) {
+    const validatedFields = UpdateVideoSchema.safeParse({
+        id: id.toString(),
+        title: formData.get('title'),
+        youtubeUrl: formData.get('youtubeUrl'),
+    });
+
+    if (!validatedFields.success) {
+        return { success: false, message: 'Validasi gagal', errors: validatedFields.error.flatten().fieldErrors };
+    }
+
+    try {
+        await db.update(wasteVideos).set({
+            title: validatedFields.data.title,
+            youtubeUrl: validatedFields.data.youtubeUrl,
+        }).where(eq(wasteVideos.id, id));
+        revalidatePath('/admin/banksampah');
+        return { success: true, message: 'Video berhasil diperbarui' };
+    } catch (error) {
+        console.error('Error updating waste video:', error);
+        if (error instanceof Error) {
+            return { success: false, message: `Gagal memperbarui video: ${error.message}` };
+        }
+        return { success: false, message: 'Gagal memperbarui video karena error tidak diketahui.' };
+    }
+}
+
+export async function deleteWasteVideo(id: number) {
+    try {
+        await db.delete(wasteVideos).where(eq(wasteVideos.id, id));
+        revalidatePath('/admin/banksampah');
+        return { success: true, message: 'Video berhasil dihapus' };
+    } catch (error) {
+        return { success: false, message: 'Gagal menghapus video' };
+    }
+}
+
 // Public-facing functions
 export async function getPublicWasteNews() {
     return await db.query.wasteNews.findMany({
@@ -266,6 +345,12 @@ export async function getWasteNewsById(id: number) {
 export async function getPublicWasteDocumentation() {
     return await db.query.wasteDocumentation.findMany({
         orderBy: (docs, { desc }) => [desc(docs.createdAt)],
+    });
+}
+
+export async function getPublicWasteVideos() {
+    return await db.query.wasteVideos.findMany({
+        orderBy: (videos, { desc }) => [desc(videos.createdAt)],
     });
 }
 
