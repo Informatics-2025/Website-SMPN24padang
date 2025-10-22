@@ -1,52 +1,52 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { signOut } from 'next-auth/react';
-import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
-import {
-    SidebarProvider,
-    Sidebar,
-    SidebarHeader,
-    SidebarContent,
-    SidebarFooter,
-    SidebarMenu,
-    SidebarMenuItem,
-    SidebarMenuButton,
-    SidebarMenuSub,
-    SidebarMenuSubItem,
-    SidebarMenuSubButton,
-} from '@/components/ui/sidebar';
-import Image from 'next/image';
-import {
-    LayoutDashboard,
-    Newspaper,
-    Trophy,
-    Image as ImageIcon,
-    Users,
-    GalleryHorizontal,
-    Network,
-    Home,
-    Phone,
-    UserCircle,
-    Target,
-    Shirt,
-    Award,
-    LogOut,
-    Youtube,
-    MessageCircleQuestion,
-    MessageSquareTextIcon, // Added for FAQ
-    Megaphone,
-    Recycle,
-    Archive,
-} from 'lucide-react';
+import AdminHeader from '@/components/admin-header'; // Import AdminHeader
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Button } from '@/components/ui/button';
-import * as Collapsible from '@radix-ui/react-collapsible';
-import { useToast } from '@/hooks/use-toast';
-import { motion, AnimatePresence } from 'framer-motion';
-import AdminHeader from '@/components/admin-header'; // Import AdminHeader
+import {
+    Sidebar,
+    SidebarContent,
+    SidebarFooter,
+    SidebarHeader,
+    SidebarMenu,
+    SidebarMenuButton,
+    SidebarMenuItem,
+    SidebarMenuSub,
+    SidebarMenuSubButton,
+    SidebarMenuSubItem,
+    SidebarProvider,
+} from '@/components/ui/sidebar';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useToast } from '@/hooks/use-toast';
+import * as Collapsible from '@radix-ui/react-collapsible';
+import { AnimatePresence, motion } from 'framer-motion';
+import {
+    Archive,
+    Award,
+    GalleryHorizontal,
+    Home,
+    Image as ImageIcon,
+    LayoutDashboard,
+    LogOut, // Added for FAQ
+    Megaphone,
+    MessageCircleQuestion,
+    MessageSquareTextIcon,
+    Network,
+    Newspaper,
+    Phone,
+    Recycle,
+    Shirt,
+    Target,
+    Trophy,
+    UserCircle,
+    Users,
+    Youtube,
+} from 'lucide-react';
+import { signOut } from 'next-auth/react';
+import Image from 'next/image';
+import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
+import React, { useEffect, useState } from 'react';
 
 export default function AdminLayout({
     children,
@@ -119,7 +119,7 @@ export default function AdminLayout({
                     label: 'Pengumuman',
                     icon: Megaphone,
                 },
-                { href: '/admin/sispendik', label: 'Sispendik', icon: Recycle },
+                { href: '/admin/sispendik', label: 'Sispendig', icon: Recycle },
                 {
                     href: '/admin/banksampah',
                     label: 'Bank Sampah',

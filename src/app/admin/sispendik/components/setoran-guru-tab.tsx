@@ -29,7 +29,7 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
-import { Pencil, Trash2, Plus, Printer, Save } from 'lucide-react';
+import { Pencil, Trash2, Plus, Printer, Save, Loader2 } from 'lucide-react';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -54,6 +54,7 @@ import { deleteGuru } from '../guru-actions';
 import { GuruDialog } from './guru-dialog';
 import { SubmitButton } from './submit-button';
 import type { JenisSampah, Guru, SetoranGuruEntry } from './types';
+import { MONTHS } from './constants';
 
 interface TabSetoranGuruProps {
     jenisSampah: JenisSampah[];
@@ -70,6 +71,16 @@ export function TabSetoranGuru({
     const [gurus, setGurus] = useState(initialGurus);
     const [setoranList, setSetoranList] = useState(initialSetoranGuru);
     const printRef = useRef<HTMLDivElement>(null);
+
+    const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
+    const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+    const [loading, setLoading] = useState(false);
+
+    const currentYear = new Date().getFullYear();
+    const years = Array.from(
+        { length: currentYear - 2020 + 6 },
+        (_, i) => 2020 + i,
+    );
 
     // State for managing teacher deposits modal
     const [manageGuru, setManageGuru] = useState<Guru | null>(null);
@@ -103,13 +114,27 @@ export function TabSetoranGuru({
         }
     };
 
-    // Revamped function to fetch entries for the dialog
+    const refetchAllSetoran = useCallback(async () => {
+        setLoading(true);
+        const updatedSetoran = await getSetoranGuru(selectedMonth, selectedYear);
+        if (updatedSetoran.data) setSetoranList(updatedSetoran.data);
+        setLoading(false);
+    }, [selectedMonth, selectedYear]);
+
+    useEffect(() => {
+        refetchAllSetoran();
+    }, [refetchAllSetoran]);
+
     const fetchGuruEntries = useCallback(
         async (guruId: number) => {
             setLoadingEntries(true);
             setEntries([]); // Clear previous entries
             try {
-                const res = await getSetoranGuruByGuru(guruId);
+                const res = await getSetoranGuruByGuru(
+                    guruId,
+                    selectedMonth,
+                    selectedYear,
+                );
                 if (res.data) {
                     setEntries(res.data);
                 } else if (res.error) {
@@ -129,7 +154,7 @@ export function TabSetoranGuru({
                 setLoadingEntries(false);
             }
         },
-        [toast],
+        [toast, selectedMonth, selectedYear],
     );
 
     const openManageGuru = (guru: Guru) => {
@@ -157,39 +182,61 @@ export function TabSetoranGuru({
             }
             processedAddStateRef.current = addState;
         }
-    }, [addState, toast, manageGuru, fetchGuruEntries]);
-
-    const refetchAllSetoran = async () => {
-        const updatedSetoran = await getSetoranGuru();
-        if (updatedSetoran.data) setSetoranList(updatedSetoran.data);
-    };
+    }, [addState, toast, manageGuru, fetchGuruEntries, refetchAllSetoran]);
 
     const guruSummary = useMemo(() => {
-        const summary = gurus.map((guru) => {
-            const guruSetoran = setoranList.filter((s) => s.guruId === guru.id);
-            const totalKg = guruSetoran.reduce(
-                (acc, s) => acc + Number(s.jumlahKg),
-                0,
-            );
-            const totalValue = guruSetoran.reduce(
-                (acc, s) =>
-                    acc + Number(s.jumlahKg) * Number(s.hargaPerKg || 0),
-                0,
-            );
-            const wasteTypes = [
-                ...new Set(guruSetoran.map((s) => s.jenisSampah)),
-            ].join(', ');
+        const summaryMap = new Map<
+            number,
+            {
+                guru: Guru;
+                totalKg: number;
+                totalValue: number;
+                setoranCount: number;
+                wasteTypes: string;
+            }
+        >();
 
-            return {
-                ...guru,
-                totalKg,
-                totalValue,
-                setoranCount: guruSetoran.length,
-                wasteTypes,
-            };
+        initialGurus.forEach((guru) => {
+            summaryMap.set(guru.id, {
+                guru,
+                totalKg: 0,
+                totalValue: 0,
+                setoranCount: 0,
+                wasteTypes: '-',
+            });
         });
-        return summary;
-    }, [gurus, setoranList]);
+
+        setoranList.forEach((s) => {
+            if (s.guruId && summaryMap.has(s.guruId)) {
+                const summary = summaryMap.get(s.guruId)!;
+                summary.totalKg += Number(s.jumlahKg);
+                summary.totalValue +=
+                    Number(s.jumlahKg) * Number(s.hargaPerKg || 0);
+                summary.setoranCount += 1;
+            }
+        });
+        
+        setoranList.reduce((acc, s) => {
+            if (s.guruId && s.jenisSampah) {
+                const currentTypes = acc.get(s.guruId) || new Set<string>();
+                currentTypes.add(s.jenisSampah);
+                acc.set(s.guruId, currentTypes);
+            }
+            return acc;
+        }, new Map<number, Set<string>>()).forEach((types, guruId) => {
+            if (summaryMap.has(guruId)) {
+                summaryMap.get(guruId)!.wasteTypes = Array.from(types).join(', ');
+            }
+        });
+
+
+        return Array.from(summaryMap.values()).map(
+            ({ guru, ...stats }) => ({
+                ...guru,
+                ...stats,
+            }),
+        );
+    }, [initialGurus, setoranList]);
 
     const handlePrint = () => {
         window.print();
@@ -278,7 +325,12 @@ export function TabSetoranGuru({
 
     return (
         <div>
-            <Card>
+            <Card className="relative">
+                {loading && (
+                    <div className="absolute inset-0 bg-background/50 flex items-center justify-center z-10 rounded-md">
+                        <Loader2 className="h-10 w-10 animate-spin" />
+                    </div>
+                )}
                 <CardHeader>
                     <div className="flex items-center justify-between print:hidden">
                         <div>
@@ -289,7 +341,37 @@ export function TabSetoranGuru({
                                 Kelola data setoran dari setiap guru.
                             </p>
                         </div>
-                        <div className="flex gap-2">
+                        <div className="flex items-center flex-wrap gap-2">
+                             <Select
+                                value={selectedMonth.toString()}
+                                onValueChange={(v) => setSelectedMonth(parseInt(v))}
+                            >
+                                <SelectTrigger className="w-40">
+                                    <SelectValue placeholder="Pilih bulan" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {MONTHS.map((m, idx) => (
+                                        <SelectItem key={m} value={(idx + 1).toString()}>
+                                            {m}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <Select
+                                value={String(selectedYear)}
+                                onValueChange={(v) => setSelectedYear(parseInt(v))}
+                            >
+                                <SelectTrigger className="w-28">
+                                    <SelectValue placeholder="Pilih tahun" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {years.map((y) => (
+                                        <SelectItem key={y} value={String(y)}>
+                                            {y}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
                             <Button
                                 onClick={() => {
                                     setEditingGuru(null);
@@ -308,7 +390,7 @@ export function TabSetoranGuru({
                     <div ref={printRef}>
                         <div className="hidden print:block text-center mb-4">
                             <h1 className="text-xl font-bold">
-                                Laporan Setoran Guru
+                                Laporan Setoran Guru - {MONTHS[selectedMonth - 1]} {selectedYear}
                             </h1>
                         </div>
                         <Table>
@@ -332,7 +414,7 @@ export function TabSetoranGuru({
                                                 {guru.namaGuru}
                                             </TableCell>
                                             <TableCell>
-                                                {guru.wasteTypes}
+                                                {guru.wasteTypes || '-'}
                                             </TableCell>
                                             <TableCell>
                                                 {guru.setoranCount}
@@ -411,7 +493,7 @@ export function TabSetoranGuru({
                             Kelola Setoran: {manageGuru?.namaGuru}
                         </DialogTitle>
                         <DialogDescription>
-                            Tambah atau edit setoran untuk guru ini.
+                            Tambah atau edit setoran untuk guru ini di bulan {MONTHS[selectedMonth - 1]} {selectedYear}.
                         </DialogDescription>
                     </DialogHeader>
 
@@ -424,6 +506,11 @@ export function TabSetoranGuru({
                             type="hidden"
                             name="guruId"
                             value={manageGuru?.id}
+                        />
+                        <input
+                            type="hidden"
+                            name="createdAt"
+                            value={new Date(selectedYear, selectedMonth - 1, 15).toISOString()}
                         />
                         <div className="sm:col-span-2">
                             <Label>Jenis Sampah</Label>
@@ -479,7 +566,7 @@ export function TabSetoranGuru({
                                             colSpan={5}
                                             className="text-center py-6"
                                         >
-                                            Memuat...
+                                            <Loader2 className="h-6 w-6 animate-spin mx-auto" />
                                         </TableCell>
                                     </TableRow>
                                 ) : entries.length === 0 ? (
@@ -622,7 +709,7 @@ export function TabSetoranGuru({
                                                                         }
                                                                     >
                                                                         {isSaving ? (
-                                                                            '...'
+                                                                            <Loader2 className="h-4 w-4 animate-spin" />
                                                                         ) : (
                                                                             <Save className="h-4 w-4" />
                                                                         )}

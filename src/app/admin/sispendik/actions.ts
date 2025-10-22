@@ -161,12 +161,14 @@ export async function createSampahKelas(data: {
     kelasId: number;
     jenisSampahId: number;
     jumlahKg: number;
+    createdAt: Date;
 }) {
     try {
         await db.insert(sampahKelas).values({
             kelasId: data.kelasId,
             jenisSampahId: data.jenisSampahId,
             jumlahKg: String(data.jumlahKg),
+            createdAt: data.createdAt,
         });
         revalidatePath('/admin/sispendik');
         revalidatePath('/sispendik');

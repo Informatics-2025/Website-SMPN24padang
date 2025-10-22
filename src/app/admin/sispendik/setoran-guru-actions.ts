@@ -2,7 +2,7 @@
 import { z } from 'zod';
 import { db } from '@/lib/db';
 import { setoranGuru, guruSispendik, jenisSampah } from '@/lib/db/schema';
-import { eq, desc } from 'drizzle-orm';
+import { eq, desc, and, sql } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 
 const FormSchema = z.object({
@@ -10,6 +10,7 @@ const FormSchema = z.object({
     guruId: z.coerce.number().min(1, 'Guru harus dipilih'),
     jenisSampahId: z.coerce.number().min(1, 'Jenis sampah harus dipilih'),
     jumlahKg: z.coerce.number().gt(0, 'Jumlah (kg) harus lebih dari 0'),
+    createdAt: z.coerce.date(),
 });
 
 const CreateSetoranGuru = FormSchema.omit({ id: true });
@@ -33,6 +34,7 @@ export async function createSetoranGuru(
         guruId: formData.get('guruId'),
         jenisSampahId: formData.get('jenisSampahId'),
         jumlahKg: formData.get('jumlahKg'),
+        createdAt: formData.get('createdAt'),
     });
 
     if (!validatedFields.success) {
@@ -48,6 +50,7 @@ export async function createSetoranGuru(
             guruId: validatedFields.data.guruId,
             jenisSampahId: validatedFields.data.jenisSampahId,
             jumlahKg: String(validatedFields.data.jumlahKg), // Konversi ke string
+            createdAt: validatedFields.data.createdAt,
         });
     } catch (error) {
         return {
@@ -112,7 +115,7 @@ export async function deleteSetoranGuru(id: number) {
     }
 }
 
-export async function getSetoranGuru() {
+export async function getSetoranGuru(month: number, year: number) {
     try {
         const data = await db
             .select({
@@ -131,6 +134,12 @@ export async function getSetoranGuru() {
                 jenisSampah,
                 eq(setoranGuru.jenisSampahId, jenisSampah.id),
             )
+            .where(
+                and(
+                    sql`EXTRACT(MONTH FROM ${setoranGuru.createdAt}) = ${month}`,
+                    sql`EXTRACT(YEAR FROM ${setoranGuru.createdAt}) = ${year}`,
+                ),
+            )
             .orderBy(desc(setoranGuru.createdAt));
 
         return { data };
@@ -140,7 +149,11 @@ export async function getSetoranGuru() {
     }
 }
 
-export async function getSetoranGuruByGuru(guruId: number) {
+export async function getSetoranGuruByGuru(
+    guruId: number,
+    month: number,
+    year: number,
+) {
     try {
         const data = await db
             .select({
@@ -159,7 +172,13 @@ export async function getSetoranGuruByGuru(guruId: number) {
                 jenisSampah,
                 eq(setoranGuru.jenisSampahId, jenisSampah.id),
             )
-            .where(eq(setoranGuru.guruId, guruId))
+            .where(
+                and(
+                    eq(setoranGuru.guruId, guruId),
+                    sql`EXTRACT(MONTH FROM ${setoranGuru.createdAt}) = ${month}`,
+                    sql`EXTRACT(YEAR FROM ${setoranGuru.createdAt}) = ${year}`,
+                ),
+            )
             .orderBy(desc(setoranGuru.createdAt));
 
         return { data };

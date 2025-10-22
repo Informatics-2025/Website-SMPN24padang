@@ -4,6 +4,8 @@ import SispendikClient from './client-page';
 
 export default async function SispendikAdminPage() {
     // Fetch initial data
+    const initialMonth = new Date().getMonth() + 1;
+    const initialYear = new Date().getFullYear();
     const [
         kelasResponse,
         jenisSampahResponse,
@@ -12,8 +14,8 @@ export default async function SispendikAdminPage() {
     ] = await Promise.all([
         getAllKelas(),
         getAllJenisSampah(),
-        getAllGurus(), // Hapus duplikasi getGurus()
-        getSetoranGuru(),
+        getAllGurus(),
+        getSetoranGuru(initialMonth, initialYear),
     ]);
 
     const kelas = kelasResponse.data || [];

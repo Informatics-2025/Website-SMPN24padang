@@ -289,10 +289,12 @@ export function TabSetoranKelas({ kelas, jenisSampah }: TabSetoranKelasProps) {
             });
             return;
         }
+        const createdAt = new Date(selectedYear, selectedMonth - 1, 15);
         const res = await createSampahKelas({
             kelasId: manageClass.id,
             jenisSampahId: jenisId,
             jumlahKg: jumlah,
+            createdAt,
         });
         if ((res as any).success) {
             toast({ title: 'Sukses', description: 'Setoran ditambahkan' });

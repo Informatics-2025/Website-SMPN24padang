@@ -36,7 +36,7 @@ import {
     CartesianGrid,
     Cell,
 } from 'recharts';
-import { Spinner } from '@/components/ui/spinner';
+import { Loader2 } from 'lucide-react';
 
 const MONTHS = [
     'Januari',
@@ -200,9 +200,79 @@ export default function SispendikDashboard() {
         <div className="space-y-8 pt-6 relative">
             {loading && (
                 <div className="absolute inset-0 bg-background/50 flex items-center justify-center z-20">
-                    <Spinner className="w-10 h-10" />
+                    <Loader2 className="w-10 h-10 animate-spin" />
                 </div>
             )}
+
+            {/* Integrated Header with Filters */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <h2 className="text-2xl font-bold tracking-tight">
+                    Dashboard Rekapitulasi
+                </h2>
+                <div className="flex flex-wrap items-center gap-2">
+                    <Select
+                        value={String(month)}
+                        onValueChange={(v) => setMonth(parseInt(v))}
+                    >
+                        <SelectTrigger className="w-auto h-9">
+                            <SelectValue placeholder="Bulan" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {MONTHS.map((m, idx) => (
+                                <SelectItem
+                                    key={m}
+                                    value={(idx + 1).toString()}
+                                >
+                                    {m}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                    <Select
+                        value={String(year)}
+                        onValueChange={(v) => setYear(parseInt(v))}
+                    >
+                        <SelectTrigger className="w-auto h-9">
+                            <SelectValue placeholder="Tahun" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {years.map((y) => (
+                                <SelectItem
+                                    key={y}
+                                    value={String(y)}
+                                >
+                                    {y}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                    <Select
+                        value={levelFilter}
+                        onValueChange={(v) =>
+                            setLevelFilter(v as any)
+                        }
+                    >
+                        <SelectTrigger className="w-auto h-9">
+                            <SelectValue placeholder="Tingkat" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">
+                                Semua Kelas
+                            </SelectItem>
+                            <SelectItem value="7">
+                                Kelas 7
+                            </SelectItem>
+                            <SelectItem value="8">
+                                Kelas 8
+                            </SelectItem>
+                            <SelectItem value="9">
+                                Kelas 9
+                            </SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+            </div>
+
             {/* Top Cards */}
             <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
                 <Card className="bg-green-100 dark:bg-green-900">
@@ -312,70 +382,8 @@ export default function SispendikDashboard() {
             {/* Class Ranking Section */}
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-start">
                 <Card className="lg:col-span-3">
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardHeader>
                         <CardTitle>Diagram Setoran Kelas</CardTitle>
-                        <div className="flex items-center space-x-2">
-                            <Select
-                                value={String(month)}
-                                onValueChange={(v) => setMonth(parseInt(v))}
-                            >
-                                <SelectTrigger className="w-auto text-xs h-8">
-                                    <SelectValue placeholder="Bulan" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {MONTHS.map((m, idx) => (
-                                        <SelectItem
-                                            key={m}
-                                            value={(idx + 1).toString()}
-                                        >
-                                            {m}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <Select
-                                value={String(year)}
-                                onValueChange={(v) => setYear(parseInt(v))}
-                            >
-                                <SelectTrigger className="w-auto text-xs h-8">
-                                    <SelectValue placeholder="Tahun" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {years.map((y) => (
-                                        <SelectItem
-                                            key={y}
-                                            value={String(y)}
-                                        >
-                                            {y}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <Select
-                                value={levelFilter}
-                                onValueChange={(v) =>
-                                    setLevelFilter(v as any)
-                                }
-                            >
-                                <SelectTrigger className="w-auto text-xs h-8">
-                                    <SelectValue placeholder="Tingkat" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="all">
-                                        Semua
-                                    </SelectItem>
-                                    <SelectItem value="7">
-                                        Kelas 7
-                                    </SelectItem>
-                                    <SelectItem value="8">
-                                        Kelas 8
-                                    </SelectItem>
-                                    <SelectItem value="9">
-                                        Kelas 9
-                                    </SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
                     </CardHeader>
                     <CardContent>
                         <ResponsiveContainer width="100%" height={350}>
