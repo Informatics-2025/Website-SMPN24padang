@@ -19,13 +19,13 @@ const nextConfig = {
 
     // --- Konfigurasi Optimasi Gambar Cerdas ---
     images: {
-        // Inti dari sistem fallback: optimasi gambar dinonaktifkan jika
-        // variabel lingkungan NEXT_IMAGE_OPTIMIZATION_DISABLED bernilai 'true'.
-        // Ini memungkinkan Anda beralih ke mode 'unoptimized' saat kuota Vercel hampir habis
-        // tanpa perlu mengubah kode.
-        unoptimized: process.env.NEXT_IMAGE_OPTIMIZATION_DISABLED === 'true',
+        // Aktifkan optimasi gambar secara default.
+        // Next.js akan secara otomatis mengoptimalkan gambar ke format modern seperti WebP/AVIF.
+        unoptimized: false,
+        formats: ['image/avif', 'image/webp'],
 
         // Daftar hostname yang diizinkan untuk optimasi gambar.
+        // Pastikan semua domain eksternal yang digunakan untuk gambar terdaftar di sini.
         remotePatterns: [
             {
                 protocol: 'https',
