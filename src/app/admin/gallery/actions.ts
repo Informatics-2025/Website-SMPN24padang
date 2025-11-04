@@ -3,9 +3,9 @@
 import { db } from '@/lib/db';
 import { galleryItems } from '@/lib/db/schema';
 import { desc, eq } from 'drizzle-orm';
-import { put, del } from '@vercel/blob';
 import { revalidatePath } from 'next/cache';
 import { v4 as uuidv4 } from 'uuid';
+import { supabase } from '@/lib/supabase';
 
 export async function getGalleryItems() {
     return await db
@@ -25,11 +25,22 @@ export async function createGalleryItem(prevState: any, formData: FormData) {
     }
 
     try {
-        const blob = await put(imageFile.name, imageFile, { access: 'public' });
+        const fileName = `${uuidv4()}-${imageFile.name}`;
+        const { data, error } = await supabase.storage
+            .from('images')
+            .upload(`gallery/${fileName}`, imageFile);
+
+        if (error) {
+            throw new Error(`Gagal mengunggah gambar: ${error.message}`);
+        }
+
+        const { data: publicUrlData } = supabase.storage
+            .from('images')
+            .getPublicUrl(`gallery/${fileName}`);
 
         await db.insert(galleryItems).values({
             id: uuidv4(),
-            src: blob.url,
+            src: publicUrlData.publicUrl,
             alt,
             category,
             orientation,
@@ -72,11 +83,9 @@ export async function updateGalleryItem(prevState: any, formData: FormData) {
 export async function deleteGalleryItem(id: string, src: string) {
     try {
         if (src && !src.includes('placehold.co')) {
-            try {
-                await del(src);
-            } catch (blobError) {
-                console.error('Failed to delete image from Vercel Blob:', blobError);
-                // Continue with database deletion even if blob deletion fails
+            const oldImageName = src.split('/').pop();
+            if (oldImageName) {
+                await supabase.storage.from('images').remove([`gallery/${oldImageName}`]);
             }
         }
         await db.delete(galleryItems).where(eq(galleryItems.id, id));

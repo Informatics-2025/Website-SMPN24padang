@@ -4,13 +4,13 @@ import { revalidatePath } from 'next/cache';
 import { db } from '@/lib/db';
 import { organizationStructures } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
-import { put, del } from '@vercel/blob';
 import { z } from 'zod';
+import { supabase } from '@/lib/supabase';
+import { v4 as uuidv4 } from 'uuid';
 
 const structureSchema = z.object({
     title: z.string().min(1, 'Judul tidak boleh kosong'),
     description: z.string().optional(),
-    pdfUrl: z.string().optional(),
 });
 
 export async function getOrganizationStructures() {
@@ -24,13 +24,12 @@ export async function getOrganizationStructures() {
 
 export async function updateOrganizationStructure(
     type: string,
-    currentImageUrl: string | null, // This is now the old blob url to be deleted
+    currentPdfUrl: string | null,
     formData: FormData,
 ) {
     const validatedFields = structureSchema.safeParse({
         title: formData.get('title'),
         description: formData.get('description'),
-        pdfUrl: formData.get('pdfUrl'),
     });
 
     if (!validatedFields.success) {
@@ -40,28 +39,47 @@ export async function updateOrganizationStructure(
         };
     }
 
-    const { title, description, pdfUrl } = validatedFields.data;
+    const { title, description } = validatedFields.data;
+    const pdfFile = formData.get('pdfFile') as File | null;
 
-    // On update, delete the old image from blob storage if it exists.
-    if (currentImageUrl) {
-        try {
-            await del(currentImageUrl);
-        } catch (error) {
-            console.error('Error deleting old image from blob storage:', error);
-            // We can choose to continue even if deletion fails,
-            // as the main goal is to update the DB.
-        }
-    }
+    const updateData: Partial<typeof organizationStructures.$inferInsert> = {
+        title,
+        description: description ?? null,
+        updatedAt: new Date(),
+    };
 
     try {
+        if (pdfFile && pdfFile.size > 0) {
+            if (currentPdfUrl) {
+                const oldPdfName = currentPdfUrl.split('/').pop();
+                if (oldPdfName) {
+                    await supabase.storage
+                        .from('files')
+                        .remove([`organization/${oldPdfName}`]);
+                }
+            }
+
+            const fileName = `${uuidv4()}-${pdfFile.name}`;
+            const { error: uploadError } = await supabase.storage
+                .from('files')
+                .upload(`organization/${fileName}`, pdfFile);
+
+            if (uploadError) {
+                throw new Error(
+                    `Gagal mengunggah PDF: ${uploadError.message}`,
+                );
+            }
+
+            const { data: publicUrlData } = supabase.storage
+                .from('files')
+                .getPublicUrl(`organization/${fileName}`);
+
+            updateData.pdfUrl = publicUrlData.publicUrl;
+        }
+
         await db
             .update(organizationStructures)
-            .set({
-                title,
-                description,
-                pdfUrl: pdfUrl,
-                updatedAt: new Date(),
-            })
+            .set(updateData)
             .where(eq(organizationStructures.type, type));
 
         revalidatePath('/admin/organization');
@@ -73,6 +91,10 @@ export async function updateOrganizationStructure(
         };
     } catch (error) {
         console.error('Error updating structure:', error);
-        return { success: false, error: 'Gagal memperbarui data.' };
+        const errorMessage =
+            error instanceof Error
+                ? error.message
+                : 'Gagal memperbarui data.';
+        return { success: false, error: errorMessage };
     }
 }

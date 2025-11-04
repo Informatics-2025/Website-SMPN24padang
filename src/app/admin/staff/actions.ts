@@ -5,9 +5,9 @@ import { db } from '@/lib/db';
 import { staff } from '@/lib/db/schema';
 import { asc, eq } from 'drizzle-orm';
 import { StaffSchema } from "./schema";
-import { put, del } from '@vercel/blob';
 import { revalidatePath } from 'next/cache';
 import { v4 as uuidv4 } from 'uuid';
+import { supabase } from '@/lib/supabase';
 
 export async function createStaff(prevState: any, formData: FormData) {
     const validatedFields = StaffSchema.safeParse(Object.fromEntries(formData.entries()));
@@ -21,8 +21,21 @@ export async function createStaff(prevState: any, formData: FormData) {
 
     try {
         if (imageFile && imageFile.size > 0) {
-            const blob = await put(imageFile.name, imageFile, { access: 'public' });
-            imageUrl = blob.url;
+            const fileName = `${uuidv4()}-${imageFile.name}`;
+            const { data, error } = await supabase.storage
+                .from('images')
+                .upload(`staff/${fileName}`, imageFile);
+
+            if (error) {
+                console.error('Supabase upload error:', error);
+                throw new Error('Gagal mengunggah gambar.');
+            }
+
+            const { data: publicUrlData } = supabase.storage
+                .from('images')
+                .getPublicUrl(`staff/${fileName}`);
+
+            imageUrl = publicUrlData.publicUrl;
         }
 
         await db.insert(staff).values({ id: uuidv4(), name, position, subject, homeroomOf, imageUrl });
@@ -52,10 +65,26 @@ export async function updateStaff(id: string, currentImageUrl: string | null, pr
     try {
         if (imageFile && imageFile.size > 0) {
             if (currentImageUrl && !currentImageUrl.includes('placehold.co')) {
-                await del(currentImageUrl);
+                const oldImageName = currentImageUrl.split('/').pop();
+                if (oldImageName) {
+                    await supabase.storage.from('images').remove([`staff/${oldImageName}`]);
+                }
             }
-            const blob = await put(imageFile.name, imageFile, { access: 'public' });
-            updateData.imageUrl = blob.url;
+            const fileName = `${uuidv4()}-${imageFile.name}`;
+            const { data, error } = await supabase.storage
+                .from('images')
+                .upload(`staff/${fileName}`, imageFile);
+
+            if (error) {
+                console.error('Supabase upload error:', error);
+                throw new Error('Gagal mengunggah gambar.');
+            }
+
+            const { data: publicUrlData } = supabase.storage
+                .from('images')
+                .getPublicUrl(`staff/${fileName}`);
+
+            updateData.imageUrl = publicUrlData.publicUrl;
         }
 
         await db.update(staff).set(updateData).where(eq(staff.id, id));
@@ -73,7 +102,10 @@ export async function updateStaff(id: string, currentImageUrl: string | null, pr
 export async function deleteStaff(id: string, imageUrl: string | null) {
     try {
         if (imageUrl && !imageUrl.includes('placehold.co')) {
-            await del(imageUrl);
+            const oldImageName = imageUrl.split('/').pop();
+            if (oldImageName) {
+                await supabase.storage.from('images').remove([`staff/${oldImageName}`]);
+            }
         }
         await db.delete(staff).where(eq(staff.id, id));
         

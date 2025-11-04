@@ -3,10 +3,10 @@
 import { db } from '@/lib/db';
 import { news } from '@/lib/db/schema';
 import { desc, eq } from 'drizzle-orm';
-import { put, del } from '@vercel/blob';
 import { revalidatePath, revalidateTag } from 'next/cache';
 import { NewsArticleSchema } from './schema';
 import { v4 as uuidv4 } from 'uuid';
+import { supabase } from '@/lib/supabase';
 
 export async function getNewsForAdmin() {
     return await db.select().from(news).orderBy(desc(news.date));
@@ -36,10 +36,21 @@ export async function createNewsArticle(prevState: any, formData: FormData) {
 
     try {
         if (imageFile && imageFile.size > 0) {
-            const blob = await put(imageFile.name, imageFile, {
-                access: 'public',
-            });
-            imageUrl = blob.url;
+            const fileName = `${uuidv4()}-${imageFile.name}`;
+            const { data, error } = await supabase.storage
+                .from('images')
+                .upload(`news/${fileName}`, imageFile);
+
+            if (error) {
+                console.error('Supabase upload error:', error);
+                throw new Error(`Gagal mengunggah gambar: ${error.message}`);
+            }
+
+            const { data: publicUrlData } = supabase.storage
+                .from('images')
+                .getPublicUrl(`news/${fileName}`);
+
+            imageUrl = publicUrlData.publicUrl;
         }
 
         const [newArticle] = await db.insert(news).values({
@@ -99,12 +110,26 @@ export async function updateNewsArticle(
     try {
         if (imageFile && imageFile.size > 0) {
             if (currentImageUrl && !currentImageUrl.includes('placehold.co')) {
-                await del(currentImageUrl);
+                const oldImageName = currentImageUrl.split('/').pop();
+                if (oldImageName) {
+                    await supabase.storage.from('images').remove([`news/${oldImageName}`]);
+                }
             }
-            const blob = await put(imageFile.name, imageFile, {
-                access: 'public',
-            });
-            updateData.imageUrl = blob.url;
+            const fileName = `${uuidv4()}-${imageFile.name}`;
+            const { data, error } = await supabase.storage
+                .from('images')
+                .upload(`news/${fileName}`, imageFile);
+
+            if (error) {
+                console.error('Supabase upload error:', error);
+                throw new Error(`Gagal mengunggah gambar: ${error.message}`);
+            }
+
+            const { data: publicUrlData } = supabase.storage
+                .from('images')
+                .getPublicUrl(`news/${fileName}`);
+
+            updateData.imageUrl = publicUrlData.publicUrl;
         }
 
         await db.update(news).set(updateData).where(eq(news.id, id));
@@ -124,7 +149,10 @@ export async function updateNewsArticle(
 export async function deleteNewsArticle(id: string, imageUrl: string | null) {
     try {
         if (imageUrl && !imageUrl.includes('placehold.co')) {
-            await del(imageUrl);
+            const oldImageName = imageUrl.split('/').pop();
+            if (oldImageName) {
+                await supabase.storage.from('images').remove([`news/${oldImageName}`]);
+            }
         }
         await db.delete(news).where(eq(news.id, id));
 

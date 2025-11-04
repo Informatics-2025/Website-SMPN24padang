@@ -5,7 +5,7 @@ import { db } from '@/lib/db';
 import { wasteNews, wasteDocumentation, wasteVideos } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 import { z } from 'zod';
-import { put, del } from '@vercel/blob';
+import { supabase } from '@/lib/supabase';
 
 // Zod Schemas
 const NewsSchema = z.object({
@@ -61,9 +61,20 @@ export async function createWasteNews(prevState: any, formData: FormData) {
     let imageUrl: string = '';
 
     try {
-        const filename = `${Date.now()}-${imageFile.name}`
-        const blob = await put(filename, imageFile, { access: 'public' });
-        imageUrl = blob.url;
+        const fileName = `${Date.now()}-${imageFile.name}`;
+        const { data, error } = await supabase.storage
+            .from('images')
+            .upload(`banksampah/news/${fileName}`, imageFile);
+
+        if (error) {
+            throw new Error(`Gagal mengunggah gambar: ${error.message}`);
+        }
+
+        const { data: publicUrlData } = supabase.storage
+            .from('images')
+            .getPublicUrl(`banksampah/news/${fileName}`);
+
+        imageUrl = publicUrlData.publicUrl;
 
         await db.insert(wasteNews).values({
             title: validatedFields.data.title,
@@ -77,10 +88,9 @@ export async function createWasteNews(prevState: any, formData: FormData) {
         console.error('Error creating waste news:', error);
         // If image was uploaded but DB failed, try to delete the image
         if (imageUrl) {
-            try {
-                await del(imageUrl);
-            } catch (deleteError) {
-                console.error('Failed to delete orphaned blob image:', deleteError);
+            const oldImageName = imageUrl.split('/').pop();
+            if (oldImageName) {
+                try { await supabase.storage.from('images').remove([`banksampah/news/${oldImageName}`]); } catch { /* ignore */ }
             }
         }
         if (error instanceof Error) {
@@ -102,42 +112,55 @@ export async function updateWasteNews(id: number, prevState: any, formData: Form
         return { success: false, message: 'Validasi gagal', errors: validatedFields.error.flatten().fieldErrors };
     }
 
+    const { title, description, googleDriveUrl } = validatedFields.data;
     const imageFile = formData.get('image') as File | null;
+
+    const updateData: Partial<typeof wasteNews.$inferInsert> = {
+        title,
+        description,
+        googleDriveUrl: googleDriveUrl || null,
+    };
+
     let newUrl: string | null = null;
 
     try {
-        // Get existing news to manage image replacement
-        const existing = await db.query.wasteNews.findFirst({ where: eq(wasteNews.id, id) });
-        let imageUrl = existing?.previewUrl || '';
-
         if (imageFile && imageFile.size > 0) {
-            const filename = `${Date.now()}-${imageFile.name}`
-            const blob = await put(filename, imageFile, { access: 'public' });
-            newUrl = blob.url;
+            const existing = await db.query.wasteNews.findFirst({ where: eq(wasteNews.id, id) });
+            const currentImageUrl = existing?.previewUrl;
 
-            // Delete old image if it exists and is not a placeholder
-            if (imageUrl && !imageUrl.includes('placehold.co')) {
-                try { await del(imageUrl); } catch { /* ignore */ }
+            if (currentImageUrl && !currentImageUrl.includes('placehold.co')) {
+                const oldImageName = currentImageUrl.split('/').pop();
+                if (oldImageName) {
+                    await supabase.storage.from('images').remove([`banksampah/news/${oldImageName}`]);
+                }
             }
-            imageUrl = newUrl;
+
+            const fileName = `${Date.now()}-${imageFile.name}`;
+            const { error: uploadError } = await supabase.storage
+                .from('images')
+                .upload(`banksampah/news/${fileName}`, imageFile);
+
+            if (uploadError) {
+                throw new Error('Gagal mengunggah gambar.');
+            }
+
+            const { data: publicUrlData } = supabase.storage
+                .from('images')
+                .getPublicUrl(`banksampah/news/${fileName}`);
+
+            newUrl = publicUrlData.publicUrl;
+            updateData.previewUrl = newUrl;
         }
 
-        await db.update(wasteNews).set({
-            title: validatedFields.data.title,
-            description: validatedFields.data.description,
-            previewUrl: imageUrl,
-            googleDriveUrl: validatedFields.data.googleDriveUrl || null,
-        }).where(eq(wasteNews.id, id));
+        await db.update(wasteNews).set(updateData).where(eq(wasteNews.id, id));
         revalidatePath('/admin/banksampah');
         return { success: true, message: 'Berita berhasil diperbarui' };
     } catch (error) {
         console.error('Error updating waste news:', error);
-        // If a new image was uploaded but the DB update failed, try to delete it
         if (newUrl) {
-            try {
-                await del(newUrl);
-            } catch (deleteError) {
-                console.error('Failed to delete orphaned blob image during update:', deleteError);
+            const newImageName = newUrl.split('/').pop();
+            if (newImageName) {
+                try { await supabase.storage.from('images').remove([`banksampah/news/${newImageName}`]); } catch { /* ignore */ }
             }
         }
         if (error instanceof Error) {
@@ -152,7 +175,10 @@ export async function deleteWasteNews(id: number) {
         // Fetch existing to delete blob image
         const existing = await db.query.wasteNews.findFirst({ where: eq(wasteNews.id, id) });
         if (existing?.previewUrl && !existing.previewUrl.includes('placehold.co')) {
-            try { await del(existing.previewUrl); } catch { /* ignore */ }
+            const oldImageName = existing.previewUrl.split('/').pop();
+            if (oldImageName) {
+                try { await supabase.storage.from('images').remove([`banksampah/news/${oldImageName}`]); } catch { /* ignore */ }
+            }
         }
 
         await db.delete(wasteNews).where(eq(wasteNews.id, id));
@@ -183,9 +209,20 @@ export async function createWasteDocumentation(prevState: any, formData: FormDat
 
     try {
         if (imageFile && imageFile.size > 0) {
-            const filename = `${Date.now()}-${imageFile.name}`
-            const blob = await put(filename, imageFile, { access: 'public' });
-            imageUrl = blob.url;
+            const fileName = `${Date.now()}-${imageFile.name}`;
+            const { data, error } = await supabase.storage
+                .from('images')
+                .upload(`banksampah/documentation/${fileName}`, imageFile);
+
+            if (error) {
+                throw new Error('Gagal mengunggah gambar.');
+            }
+
+            const { data: publicUrlData } = supabase.storage
+                .from('images')
+                .getPublicUrl(`banksampah/documentation/${fileName}`);
+
+            imageUrl = publicUrlData.publicUrl;
         }
 
         await db.insert(wasteDocumentation).values({
@@ -197,7 +234,10 @@ export async function createWasteDocumentation(prevState: any, formData: FormDat
         return { success: true, message: 'Dokumentasi berhasil ditambahkan' };
     } catch (error) {
         if (imageUrl) {
-            try { await del(imageUrl); } catch { /* ignore */ }
+            const oldImageName = imageUrl.split('/').pop();
+            if (oldImageName) {
+                try { await supabase.storage.from('images').remove([`banksampah/documentation/${oldImageName}`]); } catch { /* ignore */ }
+            }
         }
         return { success: false, message: 'Gagal menambahkan dokumentasi' };
     }
@@ -214,31 +254,58 @@ export async function updateWasteDocumentation(id: number, prevState: any, formD
         return { success: false, message: 'Validasi gagal', errors: validatedFields.error.flatten().fieldErrors };
     }
 
+    const { title, youtubeUrl } = validatedFields.data;
     const imageFile = formData.get('image') as File | null;
 
+    const updateData: Partial<typeof wasteDocumentation.$inferInsert> = {
+        title,
+        youtubeUrl: youtubeUrl || null,
+    };
+
+    let newUrl: string | null = null;
+
     try {
-        const existing = await db.query.wasteDocumentation.findFirst({ where: eq(wasteDocumentation.id, id) });
-        let imageUrl = existing?.imageUrl || null;
-
         if (imageFile && imageFile.size > 0) {
-            const filename = `${Date.now()}-${imageFile.name}`
-            const blob = await put(filename, imageFile, { access: 'public' });
-            const newUrl = blob.url;
+            const existing = await db.query.wasteDocumentation.findFirst({ where: eq(wasteDocumentation.id, id) });
+            const currentImageUrl = existing?.imageUrl;
 
-            if (imageUrl) {
-                try { await del(imageUrl); } catch { /* ignore */ }
+            if (currentImageUrl) {
+                const oldImageName = currentImageUrl.split('/').pop();
+                if (oldImageName) {
+                    await supabase.storage.from('images').remove([`banksampah/documentation/${oldImageName}`]);
+                }
             }
-            imageUrl = newUrl;
+
+            const fileName = `${Date.now()}-${imageFile.name}`;
+            const { error: uploadError } = await supabase.storage
+                .from('images')
+                .upload(`banksampah/documentation/${fileName}`, imageFile);
+
+            if (uploadError) {
+                throw new Error('Gagal mengunggah gambar.');
+            }
+
+            const { data: publicUrlData } = supabase.storage
+                .from('images')
+                .getPublicUrl(`banksampah/documentation/${fileName}`);
+
+            newUrl = publicUrlData.publicUrl;
+            updateData.imageUrl = newUrl;
         }
 
-        await db.update(wasteDocumentation).set({
-            title: validatedFields.data.title,
-            imageUrl: imageUrl,
-            youtubeUrl: validatedFields.data.youtubeUrl,
-        }).where(eq(wasteDocumentation.id, id));
+        await db.update(wasteDocumentation).set(updateData).where(eq(wasteDocumentation.id, id));
         revalidatePath('/admin/banksampah');
         return { success: true, message: 'Dokumentasi berhasil diperbarui' };
     } catch (error) {
+        if (newUrl) {
+            const newImageName = newUrl.split('/').pop();
+            if (newImageName) {
+                try { await supabase.storage.from('images').remove([`banksampah/documentation/${newImageName}`]); } catch { /* ignore */ }
+            }
+        }
+        if (error instanceof Error) {
+            return { success: false, message: `Gagal memperbarui dokumentasi: ${error.message}` };
+        }
         return { success: false, message: 'Gagal memperbarui dokumentasi' };
     }
 }
@@ -248,7 +315,10 @@ export async function deleteWasteDocumentation(id: number) {
         // Fetch existing to delete blob image
         const existing = await db.query.wasteDocumentation.findFirst({ where: eq(wasteDocumentation.id, id) });
         if (existing?.imageUrl) {
-            try { await del(existing.imageUrl); } catch { /* ignore */ }
+            const oldImageName = existing.imageUrl.split('/').pop();
+            if (oldImageName) {
+                try { await supabase.storage.from('images').remove([`banksampah/documentation/${oldImageName}`]); } catch { /* ignore */ }
+            }
         }
 
         await db.delete(wasteDocumentation).where(eq(wasteDocumentation.id, id));

@@ -3,11 +3,11 @@
 import { db } from '@/lib/db';
 import { achievements } from '@/lib/db/schema';
 import { desc, eq } from 'drizzle-orm';
-import { put, del } from '@vercel/blob';
 import { revalidatePath, revalidateTag } from 'next/cache';
 import { AchievementSchema } from './schema';
 import { v4 as uuidv4 } from 'uuid';
 import { auth } from '@/lib/auth';
+import { supabase } from '@/lib/supabase';
 
 export async function getAchievements() {
     try {
@@ -48,10 +48,20 @@ export async function createAchievement(prevState: any, formData: FormData) {
 
     try {
         if (imageFile && imageFile.size > 0) {
-            const blob = await put(imageFile.name, imageFile, {
-                access: 'public',
-            });
-            imageUrl = blob.url;
+            const fileName = `${uuidv4()}-${imageFile.name}`;
+            const { data, error } = await supabase.storage
+                .from('images')
+                .upload(`achievements/${fileName}`, imageFile);
+
+            if (error) {
+                throw new Error(`Gagal mengunggah gambar: ${error.message}`);
+            }
+
+            const { data: publicUrlData } = supabase.storage
+                .from('images')
+                .getPublicUrl(`achievements/${fileName}`);
+
+            imageUrl = publicUrlData.publicUrl;
         }
 
         await db.insert(achievements).values({
@@ -115,12 +125,25 @@ export async function updateAchievement(
     try {
         if (imageFile && imageFile.size > 0) {
             if (currentImageUrl && !currentImageUrl.includes('placehold.co')) {
-                await del(currentImageUrl);
+                const oldImageName = currentImageUrl.split('/').pop();
+                if (oldImageName) {
+                    await supabase.storage.from('images').remove([`achievements/${oldImageName}`]);
+                }
             }
-            const blob = await put(imageFile.name, imageFile, {
-                access: 'public',
-            });
-            updateData.imageUrl = blob.url;
+            const fileName = `${uuidv4()}-${imageFile.name}`;
+            const { data, error } = await supabase.storage
+                .from('images')
+                .upload(`achievements/${fileName}`, imageFile);
+
+            if (error) {
+                throw new Error('Gagal mengunggah gambar.');
+            }
+
+            const { data: publicUrlData } = supabase.storage
+                .from('images')
+                .getPublicUrl(`achievements/${fileName}`);
+
+            updateData.imageUrl = publicUrlData.publicUrl;
         }
 
         await db
@@ -146,11 +169,9 @@ export async function deleteAchievement(id: string, imageUrl: string | null) {
 
     try {
         if (imageUrl && !imageUrl.includes('placehold.co')) {
-            try {
-                await del(imageUrl);
-            } catch (blobError) {
-                console.error('Failed to delete image from Vercel Blob:', blobError);
-                // Continue with database deletion even if blob deletion fails
+            const oldImageName = imageUrl.split('/').pop();
+            if (oldImageName) {
+                await supabase.storage.from('images').remove([`achievements/${oldImageName}`]);
             }
         }
         await db.delete(achievements).where(eq(achievements.id, id));

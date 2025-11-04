@@ -4,7 +4,8 @@ import { db } from '@/lib/db';
 import { profiles, uniforms } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
-import { put } from '@vercel/blob'; // Import put from vercel/blob
+import { supabase } from '@/lib/supabase';
+import { v4 as uuidv4 } from 'uuid';
 
 export async function getUniformPageDescription() {
     try {
@@ -33,20 +34,46 @@ export async function updateUniform(formData: FormData) {
     const type = formData.get('uniformType') as 'daily' | 'sport';
     const description = formData.get('description') as string;
     const imageFile = formData.get('image') as File | null;
-    try {
-        let imageUrl: string | undefined;
-        if (imageFile) {
-            const { url } = await put(imageFile.name, imageFile, { access: 'public' }); // Upload to Vercel Blob
-            imageUrl = url;
-        }
 
-        await db.update(uniforms).set({
+    try {
+        const existingUniform = await db.query.uniforms.findFirst({
+            where: eq(uniforms.id, id),
+        });
+
+        const updateData: Partial<typeof uniforms.$inferInsert> = {
             day,
             type,
             description,
-            image: imageUrl, // Update the image column with Vercel Blob URL
-            updatedAt: new Date()
-        }).where(eq(uniforms.id, id));
+            updatedAt: new Date(),
+        };
+
+        if (imageFile && imageFile.size > 0) {
+            if (existingUniform?.image) {
+                const oldImageName = existingUniform.image.split('/').pop();
+                if (oldImageName) {
+                    await supabase.storage
+                        .from('images')
+                        .remove([`profile/uniforms/${oldImageName}`]);
+                }
+            }
+
+            const fileName = `${uuidv4()}-${imageFile.name}`;
+            const { error } = await supabase.storage
+                .from('images')
+                .upload(`profile/uniforms/${fileName}`, imageFile);
+
+            if (error) {
+                throw new Error('Gagal mengunggah gambar.');
+            }
+
+            const { data: publicUrlData } = supabase.storage
+                .from('images')
+                .getPublicUrl(`profile/uniforms/${fileName}`);
+
+            updateData.image = publicUrlData.publicUrl;
+        }
+
+        await db.update(uniforms).set(updateData).where(eq(uniforms.id, id));
 
         revalidatePath('/admin/profile/uniform');
         revalidatePath('/profile/uniform');
@@ -65,8 +92,20 @@ export async function createUniform(formData: FormData) {
     try {
         let imageUrl: string | undefined;
         if (imageFile) {
-            const { url } = await put(imageFile.name, imageFile, { access: 'public' }); // Upload to Vercel Blob
-            imageUrl = url;
+            const fileName = `${uuidv4()}-${imageFile.name}`;
+            const { data, error } = await supabase.storage
+                .from('images')
+                .upload(`profile/uniforms/${fileName}`, imageFile);
+
+            if (error) {
+                throw new Error('Gagal mengunggah gambar.');
+            }
+
+            const { data: publicUrlData } = supabase.storage
+                .from('images')
+                .getPublicUrl(`profile/uniforms/${fileName}`);
+
+            imageUrl = publicUrlData.publicUrl;
         }
 
         await db.insert(uniforms).values({
