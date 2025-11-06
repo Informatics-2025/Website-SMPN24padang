@@ -13,6 +13,42 @@ import {
 } from '@/lib/db/schema';
 import { asc, desc, sql } from 'drizzle-orm';
 import { unstable_cache as cache } from 'next/cache';
+import { supabase } from '@/lib/supabase'; // Import supabase client
+import { v4 as uuidv4 } from 'uuid'; // Import uuid for unique filenames
+
+export const uploadImage = async (formData: FormData) => {
+    const file = formData.get('file') as File;
+
+    if (!file) {
+        return { error: 'No file uploaded.' };
+    }
+
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${uuidv4()}.${fileExt}`;
+    const filePath = `public/${fileName}`; // Assuming 'public' folder in your Supabase bucket
+
+    const { data, error } = await supabase.storage
+        .from('images') // Replace 'images' with your Supabase bucket name
+        .upload(filePath, file, {
+            cacheControl: '3600',
+            upsert: false,
+        });
+
+    if (error) {
+        return { error: error.message };
+    }
+
+    const { data: publicUrlData } = supabase.storage
+        .from('images') // Replace 'images' with your Supabase bucket name
+        .getPublicUrl(filePath);
+
+    if (!publicUrlData || !publicUrlData.publicUrl) {
+      return { error: 'Failed to get public URL.' };
+    }
+
+    return { publicUrl: publicUrlData.publicUrl };
+};
+
 
 export const getBanners = cache(
     async () => {
@@ -206,4 +242,3 @@ export const getAllNewsIds = cache(
     ['all-news-ids'],
     { tags: ['news-collection'] },
 );
-

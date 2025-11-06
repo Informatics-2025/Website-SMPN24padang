@@ -8,6 +8,7 @@ import { StaffSchema } from "./schema";
 import { revalidatePath } from 'next/cache';
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '@/lib/supabase';
+import { uploadImageToSupabase, deleteImageFromSupabase } from '@/lib/supabase-storage';
 
 export async function createStaff(prevState: any, formData: FormData) {
     const validatedFields = StaffSchema.safeParse(Object.fromEntries(formData.entries()));
@@ -21,21 +22,7 @@ export async function createStaff(prevState: any, formData: FormData) {
 
     try {
         if (imageFile && imageFile.size > 0) {
-            const fileName = `${uuidv4()}-${imageFile.name}`;
-            const { data, error } = await supabase.storage
-                .from('images')
-                .upload(`staff/${fileName}`, imageFile);
-
-            if (error) {
-                console.error('Supabase upload error:', error);
-                throw new Error('Gagal mengunggah gambar.');
-            }
-
-            const { data: publicUrlData } = supabase.storage
-                .from('images')
-                .getPublicUrl(`staff/${fileName}`);
-
-            imageUrl = publicUrlData.publicUrl;
+            imageUrl = await uploadImageToSupabase(imageFile, 'staff');
         }
 
         await db.insert(staff).values({ id: uuidv4(), name, position, subject, homeroomOf, imageUrl });
@@ -58,36 +45,22 @@ export async function updateStaff(id: string, currentImageUrl: string | null, pr
     const { name, position, subject, homeroomOf } = validatedFields.data;
     const imageFile = formData.get('image') as File | null;
     
-    const updateData: { name: string, position: string, subject?: string | null, homeroomOf?: string | null, imageUrl?: string } = {
+    const updateData: { name: string, position: string, subject?: string | null, homeroomOf?: string | null, imageUrl?: string | null } = {
         name, position, subject, homeroomOf
     };
 
+    const oldImageUrl = currentImageUrl;
+
     try {
         if (imageFile && imageFile.size > 0) {
-            if (currentImageUrl && !currentImageUrl.includes('placehold.co')) {
-                const oldImageName = currentImageUrl.split('/').pop();
-                if (oldImageName) {
-                    await supabase.storage.from('images').remove([`staff/${oldImageName}`]);
-                }
-            }
-            const fileName = `${uuidv4()}-${imageFile.name}`;
-            const { data, error } = await supabase.storage
-                .from('images')
-                .upload(`staff/${fileName}`, imageFile);
-
-            if (error) {
-                console.error('Supabase upload error:', error);
-                throw new Error('Gagal mengunggah gambar.');
-            }
-
-            const { data: publicUrlData } = supabase.storage
-                .from('images')
-                .getPublicUrl(`staff/${fileName}`);
-
-            updateData.imageUrl = publicUrlData.publicUrl;
+            updateData.imageUrl = await uploadImageToSupabase(imageFile, 'staff');
         }
 
         await db.update(staff).set(updateData).where(eq(staff.id, id));
+
+        if (imageFile && imageFile.size > 0) {
+            await deleteImageFromSupabase(oldImageUrl, 'staff');
+        }
 
         revalidatePath('/profile/faculty');
         revalidatePath('/admin/staff');
@@ -101,13 +74,8 @@ export async function updateStaff(id: string, currentImageUrl: string | null, pr
 
 export async function deleteStaff(id: string, imageUrl: string | null) {
     try {
-        if (imageUrl && !imageUrl.includes('placehold.co')) {
-            const oldImageName = imageUrl.split('/').pop();
-            if (oldImageName) {
-                await supabase.storage.from('images').remove([`staff/${oldImageName}`]);
-            }
-        }
         await db.delete(staff).where(eq(staff.id, id));
+        await deleteImageFromSupabase(imageUrl, 'staff');
         
         revalidatePath('/profile/faculty');
         revalidatePath('/admin/staff');

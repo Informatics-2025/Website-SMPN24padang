@@ -6,6 +6,7 @@ import { banners, facilities, statistics } from '@/lib/db/schema';
 import { eq, desc } from 'drizzle-orm';
 import { revalidateTag, revalidatePath } from 'next/cache';
 import { supabase } from '@/lib/supabase';
+import { uploadImageToSupabase, deleteImageFromSupabase } from '@/lib/supabase-storage';
 
 export async function getHomepageData() {
     try {
@@ -43,20 +44,7 @@ export async function createBanner(formData: FormData) {
         let imageUrl: string | null = null;
 
         if (imageFile && imageFile.size > 0) {
-            const fileName = `${uuidv4()}-${imageFile.name}`;
-            const { data, error } = await supabase.storage
-                .from('images')
-                .upload(`homepage/banners/${fileName}`, imageFile);
-
-            if (error) {
-                throw new Error('Gagal mengunggah gambar.');
-            }
-
-            const { data: publicUrlData } = supabase.storage
-                .from('images')
-                .getPublicUrl(`homepage/banners/${fileName}`);
-
-            imageUrl = publicUrlData.publicUrl;
+            imageUrl = await uploadImageToSupabase(imageFile, 'homepage/banners');
         }
 
         await db
@@ -82,7 +70,7 @@ export async function updateBanner(
         const updateData: {
             title: string;
             description: string;
-            imageUrl?: string;
+            imageUrl?: string | null;
             updatedAt: Date;
         } = {
             title,
@@ -90,30 +78,17 @@ export async function updateBanner(
             updatedAt: new Date(),
         };
 
+        const oldImageUrl = currentImageUrl;
+
         if (imageFile && imageFile.size > 0) {
-            if (currentImageUrl) {
-                const oldImageName = currentImageUrl.split('/').pop();
-                if (oldImageName) {
-                    await supabase.storage.from('images').remove([`homepage/banners/${oldImageName}`]);
-                }
-            }
-            const fileName = `${uuidv4()}-${imageFile.name}`;
-            const { data, error } = await supabase.storage
-                .from('images')
-                .upload(`homepage/banners/${fileName}`, imageFile);
-
-            if (error) {
-                throw new Error('Gagal mengunggah gambar.');
-            }
-
-            const { data: publicUrlData } = supabase.storage
-                .from('images')
-                .getPublicUrl(`homepage/banners/${fileName}`);
-
-            updateData.imageUrl = publicUrlData.publicUrl;
+            updateData.imageUrl = await uploadImageToSupabase(imageFile, 'homepage/banners');
         }
 
         await db.update(banners).set(updateData).where(eq(banners.id, id));
+
+        if (imageFile && imageFile.size > 0) {
+            await deleteImageFromSupabase(oldImageUrl, 'homepage/banners');
+        }
         revalidateHomepage();
         return { success: true };
     } catch (error) {
@@ -123,13 +98,8 @@ export async function updateBanner(
 
 export async function deleteBanner(id: string, imageUrl: string | null) {
     try {
-        if (imageUrl) {
-            const oldImageName = imageUrl.split('/').pop();
-            if (oldImageName) {
-                await supabase.storage.from('images').remove([`homepage/banners/${oldImageName}`]);
-            }
-        }
         await db.delete(banners).where(eq(banners.id, id));
+        await deleteImageFromSupabase(imageUrl, 'homepage/banners');
         revalidateHomepage();
         return { success: true };
     } catch (error) {
@@ -167,20 +137,7 @@ export async function createFacility(formData: FormData) {
         let imageUrl: string | null = null;
 
         if (imageFile && imageFile.size > 0) {
-            const fileName = `${uuidv4()}-${imageFile.name}`;
-            const { data, error } = await supabase.storage
-                .from('images')
-                .upload(`homepage/facilities/${fileName}`, imageFile);
-
-            if (error) {
-                throw new Error('Gagal mengunggah gambar.');
-            }
-
-            const { data: publicUrlData } = supabase.storage
-                .from('images')
-                .getPublicUrl(`homepage/facilities/${fileName}`);
-
-            imageUrl = publicUrlData.publicUrl;
+            imageUrl = await uploadImageToSupabase(imageFile, 'homepage/facilities');
         }
 
         if (!imageUrl) {
@@ -204,38 +161,37 @@ export async function updateFacility(
         const name = formData.get('name') as string;
         const imageFile = formData.get('image') as File | null;
 
-        const updateData: { name: string; imageUrl?: string; updatedAt: Date } = {
+        const updatePayload: { name: string; updatedAt: Date; imageUrl?: string | null } = {
             name,
             updatedAt: new Date(),
         };
 
+        const oldImageUrl = currentImageUrl;
+
         if (imageFile && imageFile.size > 0) {
-            if (currentImageUrl) {
-                const oldImageName = currentImageUrl.split('/').pop();
-                if (oldImageName) {
-                    await supabase.storage.from('images').remove([`homepage/facilities/${oldImageName}`]);
-                }
+            const uploadedImageUrl = await uploadImageToSupabase(imageFile, 'homepage/facilities');
+            if (uploadedImageUrl) {
+                updatePayload.imageUrl = uploadedImageUrl;
+            } else {
+                updatePayload.imageUrl = null; // Explicitly set to null if upload failed or no image
             }
-            const fileName = `${uuidv4()}-${imageFile.name}`;
-            const { data, error } = await supabase.storage
-                .from('images')
-                .upload(`homepage/facilities/${fileName}`, imageFile);
-
-            if (error) {
-                throw new Error('Gagal mengunggah gambar.');
-            }
-
-            const { data: publicUrlData } = supabase.storage
-                .from('images')
-                .getPublicUrl(`homepage/facilities/${fileName}`);
-
-            updateData.imageUrl = publicUrlData.publicUrl;
+        } else if (currentImageUrl) {
+            // If no new image is provided, and there was a current image, keep it.
+            // We don't set imageUrl in updatePayload, so Drizzle will not update it.
+        } else {
+            // If no new image is provided and there was no current image, imageUrl should remain null.
+            // We explicitly set it to null in the payload.
+            updatePayload.imageUrl = null;
         }
 
         await db
             .update(facilities)
-            .set(updateData)
+            .set(updatePayload) // Line 181
             .where(eq(facilities.id, id));
+
+        if (imageFile && imageFile.size > 0) {
+            await deleteImageFromSupabase(oldImageUrl, 'homepage/facilities');
+        }
         revalidateHomepage();
         return { success: true };
     } catch (error) {
@@ -245,13 +201,8 @@ export async function updateFacility(
 
 export async function deleteFacility(id: string, imageUrl: string | null) {
     try {
-        if (imageUrl) {
-            const oldImageName = imageUrl.split('/').pop();
-            if (oldImageName) {
-                await supabase.storage.from('images').remove([`homepage/facilities/${oldImageName}`]);
-            }
-        }
         await db.delete(facilities).where(eq(facilities.id, id));
+        await deleteImageFromSupabase(imageUrl, 'homepage/facilities');
         revalidateHomepage();
         return { success: true };
     } catch (error) {

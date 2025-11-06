@@ -8,6 +8,7 @@ import { AchievementSchema } from './schema';
 import { v4 as uuidv4 } from 'uuid';
 import { auth } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
+import { uploadImageToSupabase, deleteImageFromSupabase } from '@/lib/supabase-storage';
 
 export async function getAchievements() {
     try {
@@ -48,20 +49,7 @@ export async function createAchievement(prevState: any, formData: FormData) {
 
     try {
         if (imageFile && imageFile.size > 0) {
-            const fileName = `${uuidv4()}-${imageFile.name}`;
-            const { data, error } = await supabase.storage
-                .from('images')
-                .upload(`achievements/${fileName}`, imageFile);
-
-            if (error) {
-                throw new Error(`Gagal mengunggah gambar: ${error.message}`);
-            }
-
-            const { data: publicUrlData } = supabase.storage
-                .from('images')
-                .getPublicUrl(`achievements/${fileName}`);
-
-            imageUrl = publicUrlData.publicUrl;
+            imageUrl = await uploadImageToSupabase(imageFile, 'achievements');
         }
 
         await db.insert(achievements).values({
@@ -115,7 +103,7 @@ export async function updateAchievement(
         title: string;
         student: string;
         description: string;
-        imageUrl?: string;
+        imageUrl?: string | null;
     } = {
         title,
         student,
@@ -123,33 +111,20 @@ export async function updateAchievement(
     };
 
     try {
+        const oldImageUrl = currentImageUrl;
+
         if (imageFile && imageFile.size > 0) {
-            if (currentImageUrl && !currentImageUrl.includes('placehold.co')) {
-                const oldImageName = currentImageUrl.split('/').pop();
-                if (oldImageName) {
-                    await supabase.storage.from('images').remove([`achievements/${oldImageName}`]);
-                }
-            }
-            const fileName = `${uuidv4()}-${imageFile.name}`;
-            const { data, error } = await supabase.storage
-                .from('images')
-                .upload(`achievements/${fileName}`, imageFile);
-
-            if (error) {
-                throw new Error('Gagal mengunggah gambar.');
-            }
-
-            const { data: publicUrlData } = supabase.storage
-                .from('images')
-                .getPublicUrl(`achievements/${fileName}`);
-
-            updateData.imageUrl = publicUrlData.publicUrl;
+            updateData.imageUrl = await uploadImageToSupabase(imageFile, 'achievements');
         }
 
         await db
             .update(achievements)
             .set(updateData)
             .where(eq(achievements.id, id));
+
+        if (imageFile && imageFile.size > 0) {
+            await deleteImageFromSupabase(oldImageUrl, 'achievements');
+        }
 
         revalidateTag('achievements-collection');
         revalidatePath('/achievements');
@@ -168,13 +143,8 @@ export async function deleteAchievement(id: string, imageUrl: string | null) {
     }
 
     try {
-        if (imageUrl && !imageUrl.includes('placehold.co')) {
-            const oldImageName = imageUrl.split('/').pop();
-            if (oldImageName) {
-                await supabase.storage.from('images').remove([`achievements/${oldImageName}`]);
-            }
-        }
         await db.delete(achievements).where(eq(achievements.id, id));
+        await deleteImageFromSupabase(imageUrl, 'achievements');
 
         revalidateTag('achievements-collection');
         revalidatePath('/achievements');

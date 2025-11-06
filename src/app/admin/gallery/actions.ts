@@ -6,6 +6,7 @@ import { desc, eq } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '@/lib/supabase';
+import { uploadImageToSupabase, deleteImageFromSupabase } from '@/lib/supabase-storage';
 
 export async function getGalleryItems() {
     return await db
@@ -25,22 +26,15 @@ export async function createGalleryItem(prevState: any, formData: FormData) {
     }
 
     try {
-        const fileName = `${uuidv4()}-${imageFile.name}`;
-        const { data, error } = await supabase.storage
-            .from('images')
-            .upload(`gallery/${fileName}`, imageFile);
+        const imageUrl = await uploadImageToSupabase(imageFile, 'gallery');
 
-        if (error) {
-            throw new Error(`Gagal mengunggah gambar: ${error.message}`);
+        if (!imageUrl) {
+            return { success: false, message: 'Gagal mengunggah gambar.' };
         }
-
-        const { data: publicUrlData } = supabase.storage
-            .from('images')
-            .getPublicUrl(`gallery/${fileName}`);
 
         await db.insert(galleryItems).values({
             id: uuidv4(),
-            src: publicUrlData.publicUrl,
+            src: imageUrl,
             alt,
             category,
             orientation,
@@ -82,13 +76,8 @@ export async function updateGalleryItem(prevState: any, formData: FormData) {
 
 export async function deleteGalleryItem(id: string, src: string) {
     try {
-        if (src && !src.includes('placehold.co')) {
-            const oldImageName = src.split('/').pop();
-            if (oldImageName) {
-                await supabase.storage.from('images').remove([`gallery/${oldImageName}`]);
-            }
-        }
         await db.delete(galleryItems).where(eq(galleryItems.id, id));
+        await deleteImageFromSupabase(src, 'gallery');
 
         revalidatePath('/gallery');
         revalidatePath('/admin/gallery');

@@ -44,6 +44,11 @@ const nextConfig = {
                 port: '',
                 pathname: '/**',
             },
+            {
+                protocol: 'https',
+                hostname: 'efxdijhagogovfontmmh.supabase.co',
+                pathname: '/**',
+            },
         ],
     },
 

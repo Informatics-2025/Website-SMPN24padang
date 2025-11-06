@@ -5,8 +5,8 @@ import { db } from '@/lib/db';
 import { profiles, pastPrincipals } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 import { z } from 'zod';
-import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '@/lib/supabase';
+import { uploadImageToSupabase, deleteImageFromSupabase } from '@/lib/supabase-storage';
 
 const profileSchema = z.object({
     principalName: z.string().min(1, 'Nama tidak boleh kosong'),
@@ -30,30 +30,13 @@ export async function updatePrincipalProfile(formData: FormData) {
     const existingProfile = await db.query.profiles.findFirst();
     const profileId = existingProfile?.id || '1';
 
-    let newImageUrl: string | undefined;
+    let newImageUrl: string | null | undefined;
+
+    const oldImageUrl = existingProfile?.principalImageUrl;
 
     if (principalImage && principalImage.size > 0) {
         try {
-            if (existingProfile?.principalImageUrl) {
-                const oldImageName = existingProfile.principalImageUrl.split('/').pop();
-                if (oldImageName) {
-                    await supabase.storage.from('images').remove([`profile/principal/${oldImageName}`]);
-                }
-            }
-            const fileName = `${uuidv4()}-${principalImage.name}`;
-            const { data, error } = await supabase.storage
-                .from('images')
-                .upload(`profile/principal/${fileName}`, principalImage);
-
-            if (error) {
-                throw new Error('Gagal mengunggah gambar.');
-            }
-
-            const { data: publicUrlData } = supabase.storage
-                .from('images')
-                .getPublicUrl(`profile/principal/${fileName}`);
-
-            newImageUrl = publicUrlData.publicUrl;
+            newImageUrl = await uploadImageToSupabase(principalImage, 'profile/principal');
         } catch (error) {
             return { success: false, message: `Gagal unggah gambar: ${error instanceof Error ? error.message : String(error)}` };
         }
@@ -82,6 +65,10 @@ export async function updatePrincipalProfile(formData: FormData) {
                 vision: '',
                 mission: '',
             });
+        }
+
+        if (newImageUrl && oldImageUrl) {
+            await deleteImageFromSupabase(oldImageUrl, 'profile/principal');
         }
         revalidatePath('/admin/profile/principal');
         revalidatePath('/');
@@ -112,31 +99,18 @@ export async function createPastPrincipal(formData: FormData) {
     }
 
     const { name, period, image } = validatedFields.data;
-    let imageUrl: string | undefined;
+    let imageUrl: string | null = null; // Initialize imageUrl to null
 
     if (image && image.size > 0) {
         try {
-            const fileName = `${uuidv4()}-${image.name}`;
-            const { data, error } = await supabase.storage
-                .from('images')
-                .upload(`profile/past-principals/${fileName}`, image);
-
-            if (error) {
-                throw new Error('Gagal mengunggah gambar.');
-            }
-
-            const { data: publicUrlData } = supabase.storage
-                .from('images')
-                .getPublicUrl(`profile/past-principals/${fileName}`);
-
-            imageUrl = publicUrlData.publicUrl;
+            imageUrl = await uploadImageToSupabase(image, 'profile/past-principals');
         } catch (error) {
             return { success: false, message: `Gagal unggah gambar: ${error instanceof Error ? error.message : String(error)}` };
         }
     }
 
     try {
-        await db.insert(pastPrincipals).values({ name, period, imageUrl });
+        await db.insert(pastPrincipals).values({ name, period, imageUrl }); // imageUrl is now properly typed
         revalidatePath('/admin/profile/principal');
         revalidateTag('past-principals-collection');
         return {
@@ -162,30 +136,12 @@ export async function updatePastPrincipal(
     }
 
     const { name, period, image } = validatedFields.data;
-    let newImageUrl: string | undefined;
+    let newImageUrl: string | null = null; // Initialize newImageUrl to null
 
+    const oldImageUrl = currentImageUrl;
     if (image && image.size > 0) {
         try {
-            if (currentImageUrl) {
-                const oldImageName = currentImageUrl.split('/').pop();
-                if (oldImageName) {
-                    await supabase.storage.from('images').remove([`profile/past-principals/${oldImageName}`]);
-                }
-            }
-            const fileName = `${uuidv4()}-${image.name}`;
-            const { data, error } = await supabase.storage
-                .from('images')
-                .upload(`profile/past-principals/${fileName}`, image);
-
-            if (error) {
-                throw new Error('Gagal mengunggah gambar.');
-            }
-
-            const { data: publicUrlData } = supabase.storage
-                .from('images')
-                .getPublicUrl(`profile/past-principals/${fileName}`);
-
-            newImageUrl = publicUrlData.publicUrl;
+            newImageUrl = await uploadImageToSupabase(image, 'profile/past-principals');
         } catch (error) {
             return { success: false, message: `Gagal unggah gambar: ${error instanceof Error ? error.message : String(error)}` };
         }
@@ -200,6 +156,10 @@ export async function updatePastPrincipal(
                 imageUrl: newImageUrl ?? currentImageUrl,
             })
             .where(eq(pastPrincipals.id, id));
+
+        if (newImageUrl && oldImageUrl) {
+            await deleteImageFromSupabase(oldImageUrl, 'profile/past-principals');
+        }
         revalidatePath('/admin/profile/principal');
         revalidateTag('past-principals-collection');
         return { success: true, message: 'Riwayat kepala sekolah diperbarui.' };
@@ -210,13 +170,8 @@ export async function updatePastPrincipal(
 
 export async function deletePastPrincipal(id: number, imageUrl: string | null) {
     try {
-        if (imageUrl) {
-            const oldImageName = imageUrl.split('/').pop();
-            if (oldImageName) {
-                await supabase.storage.from('images').remove([`profile/past-principals/${oldImageName}`]);
-            }
-        }
         await db.delete(pastPrincipals).where(eq(pastPrincipals.id, id));
+        await deleteImageFromSupabase(imageUrl, 'profile/past-principals');
         revalidatePath('/admin/profile/principal');
         revalidateTag('past-principals-collection');
         return { success: true, message: 'Data berhasil dihapus.' };

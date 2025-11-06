@@ -6,7 +6,7 @@ import { desc, eq } from 'drizzle-orm';
 import { revalidatePath, revalidateTag } from 'next/cache';
 import { NewsArticleSchema } from './schema';
 import { v4 as uuidv4 } from 'uuid';
-import { supabase } from '@/lib/supabase';
+import { uploadImageToSupabase, deleteImageFromSupabase } from '@/lib/supabase-storage';
 
 export async function getNewsForAdmin() {
     return await db.select().from(news).orderBy(desc(news.date));
@@ -19,6 +19,7 @@ export async function createNewsArticle(prevState: any, formData: FormData) {
         title: formData.get('title'),
         description: formData.get('description'),
         date: formData.get('date'),
+        image: formData.get('image'),
     });
 
     if (!validatedFields.success) {
@@ -30,27 +31,13 @@ export async function createNewsArticle(prevState: any, formData: FormData) {
         return { success: false, message: `Validasi gagal: ${errorMessages}` };
     }
 
-    const { title, description, date } = validatedFields.data;
-    const imageFile = formData.get('image') as File | null;
+    const { title, description, date, image } = validatedFields.data;
+    const imageFile = image as File | null;
     let imageUrl: string | null = null;
 
     try {
         if (imageFile && imageFile.size > 0) {
-            const fileName = `${uuidv4()}-${imageFile.name}`;
-            const { data, error } = await supabase.storage
-                .from('images')
-                .upload(`news/${fileName}`, imageFile);
-
-            if (error) {
-                console.error('Supabase upload error:', error);
-                throw new Error(`Gagal mengunggah gambar: ${error.message}`);
-            }
-
-            const { data: publicUrlData } = supabase.storage
-                .from('images')
-                .getPublicUrl(`news/${fileName}`);
-
-            imageUrl = publicUrlData.publicUrl;
+            imageUrl = await uploadImageToSupabase(imageFile, 'news');
         }
 
         const [newArticle] = await db.insert(news).values({
@@ -82,6 +69,7 @@ export async function updateNewsArticle(
         title: formData.get('title'),
         description: formData.get('description'),
         date: formData.get('date'),
+        image: formData.get('image'),
     });
 
     if (!validatedFields.success) {
@@ -93,8 +81,8 @@ export async function updateNewsArticle(
         return { success: false, message: `Validasi gagal: ${errorMessages}` };
     }
 
-    const { title, description, date } = validatedFields.data;
-    const imageFile = formData.get('image') as File | null;
+    const { title, description, date, image } = validatedFields.data;
+    const imageFile = image as File | null;
 
     const updateData: {
         title: string;
@@ -107,32 +95,18 @@ export async function updateNewsArticle(
         date: date.toISOString(),
     };
 
+    const oldImageUrl = currentImageUrl;
+
     try {
         if (imageFile && imageFile.size > 0) {
-            if (currentImageUrl && !currentImageUrl.includes('placehold.co')) {
-                const oldImageName = currentImageUrl.split('/').pop();
-                if (oldImageName) {
-                    await supabase.storage.from('images').remove([`news/${oldImageName}`]);
-                }
-            }
-            const fileName = `${uuidv4()}-${imageFile.name}`;
-            const { data, error } = await supabase.storage
-                .from('images')
-                .upload(`news/${fileName}`, imageFile);
-
-            if (error) {
-                console.error('Supabase upload error:', error);
-                throw new Error(`Gagal mengunggah gambar: ${error.message}`);
-            }
-
-            const { data: publicUrlData } = supabase.storage
-                .from('images')
-                .getPublicUrl(`news/${fileName}`);
-
-            updateData.imageUrl = publicUrlData.publicUrl;
+            updateData.imageUrl = await uploadImageToSupabase(imageFile, 'news');
         }
 
         await db.update(news).set(updateData).where(eq(news.id, id));
+
+        if (imageFile && imageFile.size > 0 && oldImageUrl) {
+            await deleteImageFromSupabase(oldImageUrl, 'news');
+        }
 
         revalidateTag('news-collection');
         revalidatePath(`/articles/${id}`);
@@ -148,13 +122,11 @@ export async function updateNewsArticle(
 
 export async function deleteNewsArticle(id: string, imageUrl: string | null) {
     try {
-        if (imageUrl && !imageUrl.includes('placehold.co')) {
-            const oldImageName = imageUrl.split('/').pop();
-            if (oldImageName) {
-                await supabase.storage.from('images').remove([`news/${oldImageName}`]);
-            }
-        }
         await db.delete(news).where(eq(news.id, id));
+
+        if (imageUrl && !imageUrl.includes('placehold.co')) {
+            await deleteImageFromSupabase(imageUrl, 'news');
+        }
 
         revalidateTag('news-collection');
         revalidatePath('/admin/news');
