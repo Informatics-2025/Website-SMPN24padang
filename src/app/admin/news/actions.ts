@@ -88,7 +88,7 @@ export async function updateNewsArticle(
         title: string;
         description: string;
         date: string;
-        imageUrl?: string;
+        imageUrl?: string | null;
     } = {
         title,
         description,
@@ -100,12 +100,8 @@ export async function updateNewsArticle(
     try {
         if (imageFile && imageFile.size > 0) {
             updateData.imageUrl = await uploadImageToSupabase(imageFile, 'news');
-        }
-
-        await db.update(news).set(updateData).where(eq(news.id, id));
-
-        if (imageFile && imageFile.size > 0 && oldImageUrl) {
-            await deleteImageFromSupabase(oldImageUrl, 'news');
+        } else if (currentImageUrl === null) {
+            updateData.imageUrl = null;
         }
 
         revalidateTag('news-collection');

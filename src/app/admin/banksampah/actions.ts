@@ -116,7 +116,9 @@ export async function updateWasteNews(id: number, prevState: any, formData: Form
     try {
         if (imageFile && imageFile.size > 0) {
             newUrl = await uploadImageToSupabase(imageFile, 'banksampah/news');
-            updateData.previewUrl = newUrl;
+            if (newUrl) {
+                updateData.previewUrl = newUrl;
+            }
         }
 
         await db.update(wasteNews).set(updateData).where(eq(wasteNews.id, id));
@@ -180,7 +182,7 @@ export async function createWasteDocumentation(prevState: any, formData: FormDat
         await db.insert(wasteDocumentation).values({
             title: validatedFields.data.title,
             imageUrl: imageUrl,
-            youtubeUrl: validatedFields.data.youtubeUrl,
+            youtubeUrl: validatedFields.data.youtubeUrl || null,
         });
         revalidatePath('/admin/banksampah');
         return { success: true, message: 'Dokumentasi berhasil ditambahkan' };

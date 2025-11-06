@@ -161,36 +161,18 @@ export async function updateFacility(
         const name = formData.get('name') as string;
         const imageFile = formData.get('image') as File | null;
 
-        const updatePayload: { name: string; updatedAt: Date; imageUrl?: string | null } = {
+        const updatePayload: { name: string; updatedAt: Date; imageUrl?: string } = {
             name,
             updatedAt: new Date(),
         };
 
-        const oldImageUrl = currentImageUrl;
-
         if (imageFile && imageFile.size > 0) {
-            const uploadedImageUrl = await uploadImageToSupabase(imageFile, 'homepage/facilities');
-            if (uploadedImageUrl) {
-                updatePayload.imageUrl = uploadedImageUrl;
+            const newImageUrl = await uploadImageToSupabase(imageFile, 'homepage/facilities');
+            if (newImageUrl) {
+                updatePayload.imageUrl = newImageUrl;
             } else {
-                updatePayload.imageUrl = null; // Explicitly set to null if upload failed or no image
+                return { success: false, error: 'Gagal mengunggah gambar.' };
             }
-        } else if (currentImageUrl) {
-            // If no new image is provided, and there was a current image, keep it.
-            // We don't set imageUrl in updatePayload, so Drizzle will not update it.
-        } else {
-            // If no new image is provided and there was no current image, imageUrl should remain null.
-            // We explicitly set it to null in the payload.
-            updatePayload.imageUrl = null;
-        }
-
-        await db
-            .update(facilities)
-            .set(updatePayload) // Line 181
-            .where(eq(facilities.id, id));
-
-        if (imageFile && imageFile.size > 0) {
-            await deleteImageFromSupabase(oldImageUrl, 'homepage/facilities');
         }
         revalidateHomepage();
         return { success: true };
