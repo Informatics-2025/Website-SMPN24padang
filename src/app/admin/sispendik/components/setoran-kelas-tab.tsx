@@ -644,7 +644,11 @@ export function TabSetoranKelas({ kelas, jenisSampah }: TabSetoranKelasProps) {
                                                 setNewJenisPrice(
                                                     String(j.hargaPerKg),
                                                 );
-                                                setNewJenisKategori(j.kategori);
+                                                setNewJenisKategori(
+                                                    j.kategori === 'organik'
+                                                        ? 'organik'
+                                                        : 'anorganik',
+                                                );
                                                 setJenisModalOpen(true);
                                             }}
                                         >
