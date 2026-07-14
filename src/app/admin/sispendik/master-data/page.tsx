@@ -8,11 +8,26 @@ export default async function MasterDataPage() {
         return <div>Error: {error}</div>;
     }
 
-    // Convert string hargaPerKg to number for the client component
-    const convertedData = data.map((item) => ({
-        ...item,
-        hargaPerKg: parseFloat(item.hargaPerKg),
-    }));
+    type MasterDataJenisSampah = {
+        id: number;
+        namaSampah: string;
+        kategori: 'organik' | 'anorganik';
+        hargaPerKg: number;
+        createdAt: Date;
+        updatedAt: Date;
+    };
+
+    const convertedData: MasterDataJenisSampah[] = data.map(
+        (item) => ({
+            id: item.id,
+            namaSampah: item.namaSampah,
+            kategori:
+                item.kategori === 'organik' ? 'organik' : 'anorganik',
+            hargaPerKg: parseFloat(item.hargaPerKg),
+            createdAt: item.createdAt,
+            updatedAt: item.updatedAt,
+        }),
+    );
 
     return (
         <div className="space-y-6">
