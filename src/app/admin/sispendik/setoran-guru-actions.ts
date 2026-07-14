@@ -46,11 +46,20 @@ export async function createSetoranGuru(
     }
 
     try {
+        const [jenis] = await db
+            .select({ hargaPerKg: jenisSampah.hargaPerKg })
+            .from(jenisSampah)
+            .where(eq(jenisSampah.id, validatedFields.data.jenisSampahId))
+            .limit(1);
+        if (!jenis) {
+            return { message: 'Jenis sampah tidak ditemukan.', success: false };
+        }
         await db.insert(setoranGuru).values({
             guruId: validatedFields.data.guruId,
             jenisSampahId: validatedFields.data.jenisSampahId,
             jumlahKg: String(validatedFields.data.jumlahKg), // Konversi ke string
-            createdAt: validatedFields.data.createdAt,
+            hargaPerKgSnapshot: jenis.hargaPerKg,
+            tanggalSetoran: validatedFields.data.createdAt,
         });
     } catch (error) {
         return {
@@ -81,12 +90,36 @@ export async function updateSetoranGuru(
     }
 
     try {
+        const [existing] = await db
+            .select({ jenisSampahId: setoranGuru.jenisSampahId })
+            .from(setoranGuru)
+            .where(eq(setoranGuru.id, id))
+            .limit(1);
+        if (!existing) {
+            return { message: 'Setoran tidak ditemukan.', success: false };
+        }
+        const updateData: {
+            jenisSampahId: number;
+            jumlahKg: string;
+            hargaPerKgSnapshot?: string;
+        } = {
+            jenisSampahId: validatedFields.data.jenisSampahId,
+            jumlahKg: String(validatedFields.data.jumlahKg),
+        };
+        if (existing.jenisSampahId !== validatedFields.data.jenisSampahId) {
+            const [jenis] = await db
+                .select({ hargaPerKg: jenisSampah.hargaPerKg })
+                .from(jenisSampah)
+                .where(eq(jenisSampah.id, validatedFields.data.jenisSampahId))
+                .limit(1);
+            if (!jenis) {
+                return { message: 'Jenis sampah tidak ditemukan.', success: false };
+            }
+            updateData.hargaPerKgSnapshot = jenis.hargaPerKg;
+        }
         await db
             .update(setoranGuru)
-            .set({
-                jenisSampahId: validatedFields.data.jenisSampahId,
-                jumlahKg: String(validatedFields.data.jumlahKg),
-            })
+            .set(updateData)
             .where(eq(setoranGuru.id, id));
     } catch (error) {
         return {
@@ -122,11 +155,11 @@ export async function getSetoranGuru(month: number, year: number) {
                 id: setoranGuru.id,
                 guruId: setoranGuru.guruId,
                 jumlahKg: setoranGuru.jumlahKg,
-                createdAt: setoranGuru.createdAt,
+                createdAt: setoranGuru.tanggalSetoran,
                 guru: guruSispendik.namaGuru,
                 jenisSampahId: jenisSampah.id,
                 jenisSampah: jenisSampah.namaSampah,
-                hargaPerKg: jenisSampah.hargaPerKg,
+                hargaPerKg: setoranGuru.hargaPerKgSnapshot,
             })
             .from(setoranGuru)
             .leftJoin(guruSispendik, eq(setoranGuru.guruId, guruSispendik.id))
@@ -136,11 +169,11 @@ export async function getSetoranGuru(month: number, year: number) {
             )
             .where(
                 and(
-                    sql`EXTRACT(MONTH FROM ${setoranGuru.createdAt}) = ${month}`,
-                    sql`EXTRACT(YEAR FROM ${setoranGuru.createdAt}) = ${year}`,
+                    sql`EXTRACT(MONTH FROM ${setoranGuru.tanggalSetoran}) = ${month}`,
+                    sql`EXTRACT(YEAR FROM ${setoranGuru.tanggalSetoran}) = ${year}`,
                 ),
             )
-            .orderBy(desc(setoranGuru.createdAt));
+            .orderBy(desc(setoranGuru.tanggalSetoran));
 
         return { data };
     } catch (error) {
@@ -160,7 +193,7 @@ export async function getSetoranGuruByGuru(
                 id: setoranGuru.id,
                 guruId: setoranGuru.guruId,
                 jumlahKg: setoranGuru.jumlahKg,
-                createdAt: setoranGuru.createdAt,
+                createdAt: setoranGuru.tanggalSetoran,
                 guru: guruSispendik.namaGuru,
                 jenisSampahId: setoranGuru.jenisSampahId,
                 jenisSampah: jenisSampah.namaSampah,
@@ -175,11 +208,11 @@ export async function getSetoranGuruByGuru(
             .where(
                 and(
                     eq(setoranGuru.guruId, guruId),
-                    sql`EXTRACT(MONTH FROM ${setoranGuru.createdAt}) = ${month}`,
-                    sql`EXTRACT(YEAR FROM ${setoranGuru.createdAt}) = ${year}`,
+                    sql`EXTRACT(MONTH FROM ${setoranGuru.tanggalSetoran}) = ${month}`,
+                    sql`EXTRACT(YEAR FROM ${setoranGuru.tanggalSetoran}) = ${year}`,
                 ),
             )
-            .orderBy(desc(setoranGuru.createdAt));
+            .orderBy(desc(setoranGuru.tanggalSetoran));
 
         return { data };
     } catch (error) {

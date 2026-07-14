@@ -98,22 +98,36 @@ export const kelas = pgTable(
 export const jenisSampah = pgTable('jenis_sampah', {
     id: serial('id').primaryKey(),
     namaSampah: varchar('nama_sampah', { length: 255 }).notNull(),
+    kategori: varchar('kategori', { length: 12 }).notNull().default('anorganik'),
     hargaPerKg: decimal('harga_per_kg', { precision: 10, scale: 2 }).notNull(),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
-export const sampahKelas = pgTable('sampah_kelas', {
-    id: serial('id').primaryKey(),
-    kelasId: integer('kelas_id')
-        .notNull()
-        .references(() => kelas.id, { onDelete: 'cascade' }),
-    jenisSampahId: integer('jenis_sampah_id')
-        .notNull()
-        .references(() => jenisSampah.id, { onDelete: 'cascade' }),
-    jumlahKg: decimal('jumlah_kg', { precision: 10, scale: 2 }).notNull(),
-    createdAt: timestamp('created_at').defaultNow().notNull(),
-});
+export const sampahKelas = pgTable(
+    'sampah_kelas',
+    {
+        id: serial('id').primaryKey(),
+        kelasId: integer('kelas_id')
+            .notNull()
+            .references(() => kelas.id, { onDelete: 'cascade' }),
+        jenisSampahId: integer('jenis_sampah_id')
+            .notNull()
+            .references(() => jenisSampah.id, { onDelete: 'cascade' }),
+        jumlahKg: decimal('jumlah_kg', { precision: 10, scale: 2 }).notNull(),
+        hargaPerKgSnapshot: decimal('harga_per_kg_snapshot', {
+            precision: 10,
+            scale: 2,
+        }).notNull(),
+        tanggalSetoran: timestamp('tanggal_setoran').notNull(),
+        createdAt: timestamp('created_at').defaultNow().notNull(),
+    },
+    (table) => ({
+        tanggalSetoranIdx: index('sampah_kelas_tanggal_setoran_idx').on(
+            table.tanggalSetoran,
+        ),
+    }),
+);
 
 export const guruSispendik = pgTable('guru_sispendik', {
     id: serial('id').primaryKey(),
@@ -123,17 +137,54 @@ export const guruSispendik = pgTable('guru_sispendik', {
 });
 
 
-export const setoranGuru = pgTable('setoran_guru', {
-    id: serial('id').primaryKey(),
-    guruId: integer('guru_id')
-        .notNull()
-        .references(() => guruSispendik.id, { onDelete: 'cascade' }),
-    jenisSampahId: integer('jenis_sampah_id')
-        .notNull()
-        .references(() => jenisSampah.id, { onDelete: 'cascade' }),
-    jumlahKg: decimal('jumlah_kg', { precision: 10, scale: 2 }).notNull(),
-    createdAt: timestamp('created_at').defaultNow().notNull(),
-});
+export const setoranGuru = pgTable(
+    'setoran_guru',
+    {
+        id: serial('id').primaryKey(),
+        guruId: integer('guru_id')
+            .notNull()
+            .references(() => guruSispendik.id, { onDelete: 'cascade' }),
+        jenisSampahId: integer('jenis_sampah_id')
+            .notNull()
+            .references(() => jenisSampah.id, { onDelete: 'cascade' }),
+        jumlahKg: decimal('jumlah_kg', { precision: 10, scale: 2 }).notNull(),
+        hargaPerKgSnapshot: decimal('harga_per_kg_snapshot', {
+            precision: 10,
+            scale: 2,
+        }).notNull(),
+        tanggalSetoran: timestamp('tanggal_setoran').notNull(),
+        createdAt: timestamp('created_at').defaultNow().notNull(),
+    },
+    (table) => ({
+        tanggalSetoranIdx: index('setoran_guru_tanggal_setoran_idx').on(
+            table.tanggalSetoran,
+        ),
+    }),
+);
+
+export const setoranMasyarakat = pgTable(
+    'setoran_masyarakat',
+    {
+        id: serial('id').primaryKey(),
+        namaPenyetor: varchar('nama_penyetor', { length: 255 }).notNull(),
+        jenisSampahId: integer('jenis_sampah_id')
+            .notNull()
+            .references(() => jenisSampah.id),
+        jumlahKg: decimal('jumlah_kg', { precision: 10, scale: 2 }).notNull(),
+        hargaPerKgSnapshot: decimal('harga_per_kg_snapshot', {
+            precision: 10,
+            scale: 2,
+        }).notNull(),
+        tanggalSetoran: timestamp('tanggal_setoran').notNull(),
+        createdAt: timestamp('created_at').defaultNow().notNull(),
+        updatedAt: timestamp('updated_at').defaultNow().notNull(),
+    },
+    (table) => ({
+        tanggalSetoranIdx: index('setoran_masyarakat_tanggal_setoran_idx').on(
+            table.tanggalSetoran,
+        ),
+    }),
+);
 
 export const wasteNews = pgTable('waste_news', {
     id: serial('id').primaryKey(),

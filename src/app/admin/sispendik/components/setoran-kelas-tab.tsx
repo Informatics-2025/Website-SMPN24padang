@@ -69,6 +69,7 @@ export function TabSetoranKelas({ kelas, jenisSampah }: TabSetoranKelasProps) {
     const [jenisModalOpen, setJenisModalOpen] = useState(false);
     const [newJenisName, setNewJenisName] = useState('');
     const [newJenisPrice, setNewJenisPrice] = useState('');
+    const [newJenisKategori, setNewJenisKategori] = useState<'organik' | 'anorganik'>('anorganik');
 
     const [selectedMonth, setSelectedMonth] = useState<number>(
         new Date().getMonth() + 1,
@@ -184,8 +185,13 @@ export function TabSetoranKelas({ kelas, jenisSampah }: TabSetoranKelasProps) {
             ? await updateJenisSampah(editingJenis.id, {
                   namaSampah: name,
                   hargaPerKg: price,
+                  kategori: newJenisKategori,
               })
-            : await createJenisSampah({ namaSampah: name, hargaPerKg: price });
+            : await createJenisSampah({
+                  namaSampah: name,
+                  hargaPerKg: price,
+                  kategori: newJenisKategori,
+              });
 
         if (res.success && res.data) {
             toast({
@@ -207,6 +213,7 @@ export function TabSetoranKelas({ kelas, jenisSampah }: TabSetoranKelasProps) {
             setEditingJenis(null);
             setNewJenisName('');
             setNewJenisPrice('');
+            setNewJenisKategori('anorganik');
         } else {
             toast({
                 title: 'Error',
@@ -624,7 +631,7 @@ export function TabSetoranKelas({ kelas, jenisSampah }: TabSetoranKelasProps) {
                                             {Number(
                                                 j.hargaPerKg,
                                             ).toLocaleString('id-ID')}
-                                            /kg
+                                            /kg · {j.kategori === 'organik' ? 'Organik' : 'Anorganik'}
                                         </div>
                                     </div>
                                     <div className="flex gap-2">
@@ -637,6 +644,7 @@ export function TabSetoranKelas({ kelas, jenisSampah }: TabSetoranKelasProps) {
                                                 setNewJenisPrice(
                                                     String(j.hargaPerKg),
                                                 );
+                                                setNewJenisKategori(j.kategori);
                                                 setJenisModalOpen(true);
                                             }}
                                         >
@@ -669,6 +677,7 @@ export function TabSetoranKelas({ kelas, jenisSampah }: TabSetoranKelasProps) {
                         setEditingJenis(null);
                         setNewJenisName('');
                         setNewJenisPrice('');
+                        setNewJenisKategori('anorganik');
                     }
                 }}
             >
@@ -708,6 +717,21 @@ export function TabSetoranKelas({ kelas, jenisSampah }: TabSetoranKelasProps) {
                                 type="number"
                                 step="0.01"
                             />
+                        </div>
+                        <div>
+                            <Label>Kategori</Label>
+                            <Select
+                                value={newJenisKategori}
+                                onValueChange={(value) =>
+                                    setNewJenisKategori(value as 'organik' | 'anorganik')
+                                }
+                            >
+                                <SelectTrigger><SelectValue /></SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="organik">Organik</SelectItem>
+                                    <SelectItem value="anorganik">Anorganik</SelectItem>
+                                </SelectContent>
+                            </Select>
                         </div>
                         <div className="flex justify-end gap-2">
                             <Button type="submit">Simpan</Button>

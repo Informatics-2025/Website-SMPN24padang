@@ -7,6 +7,13 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import {
     Table,
     TableBody,
     TableCell,
@@ -36,6 +43,7 @@ import {
 type JenisSampah = {
     id: number;
     namaSampah: string;
+    kategori: 'organik' | 'anorganik';
     hargaPerKg: number;
     createdAt: Date;
     updatedAt: Date;
@@ -56,6 +64,7 @@ export default function MasterDataClient({
     const [formData, setFormData] = useState({
         namaSampah: '',
         hargaPerKg: '',
+        kategori: 'anorganik' as 'organik' | 'anorganik',
     });
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -65,6 +74,7 @@ export default function MasterDataClient({
                 const result = await updateJenisSampah(editing.id, {
                     namaSampah: formData.namaSampah,
                     hargaPerKg: parseFloat(formData.hargaPerKg),
+                    kategori: formData.kategori,
                 });
                 if (result.success) {
                     toast({
@@ -78,6 +88,7 @@ export default function MasterDataClient({
                 const result = await createJenisSampah({
                     namaSampah: formData.namaSampah,
                     hargaPerKg: parseFloat(formData.hargaPerKg),
+                    kategori: formData.kategori,
                 });
                 if (result.success) {
                     toast({
@@ -88,7 +99,7 @@ export default function MasterDataClient({
                     throw new Error(result.error);
                 }
             }
-            setFormData({ namaSampah: '', hargaPerKg: '' });
+            setFormData({ namaSampah: '', hargaPerKg: '', kategori: 'anorganik' });
             setEditing(null);
             // Refresh data after successful operation
             router.refresh();
@@ -106,6 +117,7 @@ export default function MasterDataClient({
         setFormData({
             namaSampah: item.namaSampah,
             hargaPerKg: item.hargaPerKg.toString(),
+            kategori: item.kategori,
         });
     };
 
@@ -141,7 +153,7 @@ export default function MasterDataClient({
                 </CardHeader>
                 <CardContent>
                     <form onSubmit={handleSubmit} className="space-y-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div className="space-y-2">
                                 <Label htmlFor="namaSampah">Nama Sampah</Label>
                                 <Input
@@ -176,6 +188,24 @@ export default function MasterDataClient({
                                     required
                                 />
                             </div>
+                            <div className="space-y-2">
+                                <Label>Kategori</Label>
+                                <Select
+                                    value={formData.kategori}
+                                    onValueChange={(value) =>
+                                        setFormData((prev) => ({
+                                            ...prev,
+                                            kategori: value as 'organik' | 'anorganik',
+                                        }))
+                                    }
+                                >
+                                    <SelectTrigger><SelectValue /></SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="organik">Organik</SelectItem>
+                                        <SelectItem value="anorganik">Anorganik</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
                         </div>
                         <div className="flex gap-2">
                             <Button type="submit">
@@ -190,6 +220,7 @@ export default function MasterDataClient({
                                         setFormData({
                                             namaSampah: '',
                                             hargaPerKg: '',
+                                            kategori: 'anorganik',
                                         });
                                     }}
                                 >
@@ -212,6 +243,7 @@ export default function MasterDataClient({
                                 <TableRow>
                                     <TableHead>Nama Sampah</TableHead>
                                     <TableHead>Harga per Kg</TableHead>
+                                    <TableHead>Kategori</TableHead>
                                     <TableHead>Terakhir Diperbarui</TableHead>
                                     <TableHead className="w-[100px]">
                                         Aksi
@@ -228,6 +260,7 @@ export default function MasterDataClient({
                                                 'id-ID',
                                             )}
                                         </TableCell>
+                                        <TableCell className="capitalize">{item.kategori}</TableCell>
                                         <TableCell>
                                             {new Date(
                                                 item.updatedAt,

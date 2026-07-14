@@ -19,12 +19,12 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import {
-    getAggregatedData,
-    getClassRanking,
-    AggregatedData,
+    getClassTotals,
+    getPerkembanganSampahKelas,
     getTotalsSummary,
     getTopWasteTypes,
     getGuruRanking,
+    getMasyarakatTotals,
 } from '@/app/admin/sispendik/actions';
 import {
     ResponsiveContainer,
@@ -62,17 +62,30 @@ const COLORS = [
 ];
 
 // --- TYPE DEFINITIONS ---
-type TopWasteType = { wasteType: string; totalKg: number; totalValue: number };
+type TopWasteType = {
+    wasteType: string;
+    totalKg: number;
+    totalValue: number;
+    category?: string;
+};
 type ClassRanking = {
     className: string;
     total: number;
     totalValue: number;
     jenisList: string | null;
+    categories: string | null;
 };
 type GuruRanking = {
     guruName: string;
     totalKg: number;
     wasteTypes: string | null;
+    categories: string | null;
+};
+
+type MasyarakatTotal = {
+    wasteType: string;
+    category: string | null;
+    totalKg: number;
 };
 
 // --- CUSTOM TOOLTIPS ---
@@ -86,6 +99,9 @@ const CustomClassTooltip = ({ active, payload, label }: any) => {
                 </p>
                 <p className="text-sm text-muted-foreground">
                     Jenis: {payload[0].payload.jenisList || 'N/A'}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                    Kategori: {payload[0].payload.categories || 'N/A'}
                 </p>
             </div>
         );
@@ -101,6 +117,12 @@ const CustomGuruTooltip = ({ active, payload, label }: any) => {
                 <p className="text-sm">
                     Total Sampah: {Number(payload[0].value).toFixed(2)} kg
                 </p>
+                <p className="text-sm text-muted-foreground">
+                    Jenis: {payload[0].payload.wasteTypes || 'N/A'}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                    Kategori: {payload[0].payload.categories || 'N/A'}
+                </p>
             </div>
         );
     }
@@ -110,13 +132,17 @@ const CustomGuruTooltip = ({ active, payload, label }: any) => {
 export default function SispendikDashboard() {
     const [month, setMonth] = useState(new Date().getMonth() + 1);
     const [year, setYear] = useState(new Date().getFullYear());
-    const [aggregatedData, setAggregatedData] = useState<AggregatedData[]>([]);
-    const [classRanking, setClassRanking] = useState<ClassRanking[]>([]);
+    const [classTotals, setClassTotals] = useState<ClassRanking[]>([]);
+    const [classProgress, setClassProgress] = useState<{
+        kelas: string;
+        months: number[];
+    }[]>([]);
     const [guruRanking, setGuruRanking] = useState<GuruRanking[]>([]);
     const [totalWaste, setTotalWaste] = useState(0);
     const [totalIncome, setTotalIncome] = useState(0);
     const [topClasses, setTopClasses] = useState<string[]>([]);
     const [topWasteTypes, setTopWasteTypes] = useState<TopWasteType[]>([]);
+    const [masyarakatTotals, setMasyarakatTotals] = useState<MasyarakatTotal[]>([]);
     const [levelFilter, setLevelFilter] = useState<'all' | '7' | '8' | '9'>(
         'all',
     );
@@ -126,8 +152,8 @@ export default function SispendikDashboard() {
     const [loading, setLoading] = useState(true);
 
     const maxClassTotal =
-        classRanking.length > 0
-            ? Math.max(...classRanking.map((c) => c.total))
+        classTotals.length > 0
+            ? Math.max(...classTotals.map((c) => c.total))
             : 0;
     const maxGuruKg =
         guruRanking.length > 0
@@ -140,33 +166,47 @@ export default function SispendikDashboard() {
     useEffect(() => {
         const fetchData = async () => {
             setLoading(true);
-            const [aggData, rankData, summary, topWasteRes, guruRankData] =
-                await Promise.all([
-                    getAggregatedData(month, year),
-                    getClassRanking(month, year),
-                    getTotalsSummary(month, year),
-                    getTopWasteTypes(month, year),
-                    getGuruRanking(month, year),
-                ]);
+            const [
+                totalsData,
+                progressData,
+                summary,
+                topWasteRes,
+                guruRankData,
+                masyarakatData,
+            ] = await Promise.all([
+                getClassTotals(month, year),
+                getPerkembanganSampahKelas(year),
+                getTotalsSummary(month, year),
+                getTopWasteTypes(month, year),
+                getGuruRanking(month, year),
+                getMasyarakatTotals(month, year),
+            ]);
 
-            if (aggData.data) setAggregatedData(aggData.data);
-
-            if (
-                rankData.data &&
-                Array.isArray(rankData.data) &&
-                rankData.data.length > 0
-            ) {
-                const typedData = rankData.data as ClassRanking[];
+            if (totalsData.data && Array.isArray(totalsData.data)) {
+                const typedData = totalsData.data as ClassRanking[];
                 const filteredData = typedData.filter(
                     (c) =>
                         levelFilter === 'all' ||
                         c.className.startsWith(levelFilter),
                 );
-                setClassRanking(filteredData);
-                setTopClasses(filteredData.slice(0, 3).map((c) => c.className));
+                setClassTotals(filteredData);
+                const sortedTopClasses = [...filteredData]
+                    .sort((a, b) => b.total - a.total)
+                    .slice(0, 3)
+                    .map((c) => c.className);
+                setTopClasses(sortedTopClasses);
             } else {
-                setClassRanking([]);
+                setClassTotals([]);
                 setTopClasses([]);
+            }
+
+            if (progressData.data && Array.isArray(progressData.data)) {
+                setClassProgress(progressData.data as {
+                    kelas: string;
+                    months: number[];
+                }[]);
+            } else {
+                setClassProgress([]);
             }
 
             if (summary.data) {
@@ -189,6 +229,12 @@ export default function SispendikDashboard() {
                 setGuruRanking(guruRankData.data as GuruRanking[]);
             } else {
                 setGuruRanking([]);
+            }
+
+            if (masyarakatData.data && Array.isArray(masyarakatData.data)) {
+                setMasyarakatTotals(masyarakatData.data as MasyarakatTotal[]);
+            } else {
+                setMasyarakatTotals([]);
             }
             setLoading(false);
         };
@@ -296,8 +342,8 @@ export default function SispendikDashboard() {
                         <div className="flex justify-between items-center">
                             <CardTitle>
                                 {topRankerType === 'kelas'
-                                    ? 'Top 3 Kelas'
-                                    : 'Top 3 Guru'}
+                                    ? 'Kelas Unggulan'
+                                    : 'Guru Unggulan'}
                             </CardTitle>
                             <Button
                                 variant="outline"
@@ -316,12 +362,16 @@ export default function SispendikDashboard() {
                                     : 'Kelas'}
                             </Button>
                         </div>
-                        <div className="text-lg font-bold pt-2">
+                        <div className="space-y-2 pt-2 text-sm">
                             {topRankerType === 'kelas' ? (
                                 topClasses.length > 0 ? (
                                     topClasses.map((c, i) => (
-                                        <div key={i}>
-                                            {i + 1}. {c}
+                                        <div
+                                            key={i}
+                                            className="flex items-center gap-2"
+                                        >
+                                            <span>•</span>
+                                            <span>{c}</span>
                                         </div>
                                     ))
                                 ) : (
@@ -333,15 +383,10 @@ export default function SispendikDashboard() {
                                         key={i}
                                         className="flex justify-between items-baseline"
                                     >
-                                        <p>
-                                            {i + 1}. {g.guruName}
-                                        </p>
-                                        <p className="text-sm font-normal text-muted-foreground">
-                                            {Number(g.totalKg || 0).toFixed(
-                                                2,
-                                            )}{' '}
-                                            kg
-                                        </p>
+                                        <span>{g.guruName}</span>
+                                        <span className="text-sm font-normal text-muted-foreground">
+                                            {Number(g.totalKg || 0).toFixed(2)} kg
+                                        </span>
                                     </div>
                                 ))
                             ) : (
@@ -353,21 +398,21 @@ export default function SispendikDashboard() {
                 <Card className="bg-green-100 dark:bg-green-900">
                     <CardHeader>
                         <CardTitle>Jenis Sampah Teratas</CardTitle>
-                        <div className="space-y-2 pt-2">
+                        <div className="space-y-2 pt-2 text-sm">
                             {topWasteTypes.length > 0 ? (
                                 topWasteTypes.map((w, i) => (
                                     <div
                                         key={i}
-                                        className="flex justify-between items-baseline"
+                                        className="space-y-1"
                                     >
-                                        <p className="font-bold text-sm">
-                                            {i + 1}. {w.wasteType}
-                                        </p>
-                                        <p className="text-sm text-muted-foreground">
-                                            {Number(w.totalKg || 0).toFixed(
-                                                2,
-                                            )}{' '}
-                                            kg
+                                        <div className="flex justify-between items-baseline">
+                                            <span>{w.wasteType}</span>
+                                            <span className="text-sm text-muted-foreground">
+                                                {Number(w.totalKg || 0).toFixed(2)} kg
+                                            </span>
+                                        </div>
+                                        <p className="text-xs text-muted-foreground">
+                                            Kategori: {w.category || '-'}
                                         </p>
                                     </div>
                                 ))
@@ -379,7 +424,7 @@ export default function SispendikDashboard() {
                 </Card>
             </div>
 
-            {/* Class Ranking Section */}
+            {/* Class Totals Section */}
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-start">
                 <Card className="lg:col-span-3">
                     <CardHeader>
@@ -388,7 +433,7 @@ export default function SispendikDashboard() {
                     <CardContent>
                         <ResponsiveContainer width="100%" height={350}>
                             <BarChart
-                                data={classRanking}
+                                data={classTotals}
                                 margin={{
                                     top: 5,
                                     right: 20,
@@ -418,7 +463,7 @@ export default function SispendikDashboard() {
                                     }}
                                 />
                                 <Bar dataKey="total">
-                                    {classRanking.map((entry, index) => (
+                                    {classTotals.map((entry, index) => (
                                         <Cell
                                             key={`cell-${index}`}
                                             fill={
@@ -435,60 +480,113 @@ export default function SispendikDashboard() {
                 </Card>
                 <Card className="lg:col-span-2">
                     <CardHeader>
-                        <CardTitle>Tabel Peringkat Kelas</CardTitle>
+                        <CardTitle>Tabel Setoran Kelas</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <div className="relative overflow-y-auto h-96">
                             <Table>
                                 <TableHeader className="sticky top-0 bg-background z-10">
                                     <TableRow>
-                                        <TableHead className="w-16 text-center">
-                                            No
-                                        </TableHead>
-                                        <TableHead>Kelas</TableHead>
+                                        <TableHead>KELAS</TableHead>
+                                        <TableHead>Jenis Sampah</TableHead>
                                         <TableHead className="text-right">
                                             Total Sampah
-                                        </TableHead>
-                                        <TableHead className="text-right">
-                                            Total Pendapatan
                                         </TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {classRanking.length === 0 ? (
+                                    {classTotals.length === 0 ? (
                                         <TableRow>
                                             <TableCell
-                                                colSpan={4}
+                                                colSpan={3}
                                                 className="text-center h-32"
                                             >
                                                 Belum ada data
                                             </TableCell>
                                         </TableRow>
                                     ) : (
-                                        classRanking.map((c, idx) => (
+                                        classTotals.map((c) => (
                                             <TableRow
                                                 key={c.className}
                                                 className="hover:bg-muted/50"
                                             >
-                                                <TableCell className="text-center font-medium">
-                                                    {idx + 1}
-                                                </TableCell>
-                                                <TableCell>
-                                                    {c.className}
-                                                </TableCell>
-                                                <TableCell className="text-right">
+                                                <TableCell>{c.className}</TableCell>
+                                            <TableCell>
+                                                <div>{c.jenisList || '-'}</div>
+                                                <div className="text-xs text-muted-foreground">
+                                                    Kategori: {c.categories || '-'}
+                                                </div>
+                                            </TableCell>
+                                            <TableCell className="text-right">
+                                                {Number(c.total || 0).toFixed(2)} kg
+                                            </TableCell>
+                                            </TableRow>
+                                        ))
+                                    )}
+                                </TableBody>
+                            </Table>
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+
+            {/* Monthly Totals and Progression */}
+            <div className="grid grid-cols-1 gap-6">
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Perkembangan Sampah per Kelas {year}</CardTitle>
+                        <p className="text-sm text-muted-foreground">
+                            
+                        </p>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="overflow-x-auto rounded-lg border border-muted">
+                            <Table className="min-w-[1000px]">
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Kelas</TableHead>
+                                        {MONTHS.map((monthName) => (
+                                            <TableHead key={monthName} className="text-right">
+                                                {monthName.slice(0, 3)}
+                                            </TableHead>
+                                        ))}
+                                        <TableHead className="text-right">
+                                            Total
+                                        </TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {classProgress.length === 0 ? (
+                                        <TableRow>
+                                            <TableCell
+                                                colSpan={14}
+                                                className="text-center h-24"
+                                            >
+                                                Belum ada data
+                                            </TableCell>
+                                        </TableRow>
+                                    ) : (
+                                        classProgress.map((row) => (
+                                            <TableRow
+                                                key={row.kelas}
+                                                className="hover:bg-muted/50"
+                                            >
+                                                <TableCell>{row.kelas}</TableCell>
+                                                {row.months.map((value, idx) => (
+                                                    <TableCell
+                                                        key={`${row.kelas}-${idx}`}
+                                                        className="text-right"
+                                                    >
+                                                        {Number(value).toFixed(2)}
+                                                    </TableCell>
+                                                ))}
+                                                <TableCell className="text-right font-semibold">
                                                     {Number(
-                                                        c.total || 0,
-                                                    ).toFixed(2)}{' '}
-                                                    kg
-                                                </TableCell>
-                                                <TableCell className="text-right">
-                                                    Rp{' '}
-                                                    {Number(
-                                                        c.totalValue || 0,
-                                                    ).toLocaleString(
-                                                        'id-ID',
-                                                    )}
+                                                        row.months.reduce(
+                                                            (sum, value) => sum + value,
+                                                            0,
+                                                        ),
+                                                    ).toFixed(2)}
                                                 </TableCell>
                                             </TableRow>
                                         ))
@@ -500,7 +598,7 @@ export default function SispendikDashboard() {
                 </Card>
             </div>
 
-            {/* Guru Ranking Section */}
+            {/* Guru Section */}
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-start">
                 <Card className="lg:col-span-3">
                     <CardHeader>
@@ -556,7 +654,7 @@ export default function SispendikDashboard() {
                 </Card>
                 <Card className="lg:col-span-2">
                     <CardHeader>
-                        <CardTitle>Tabel Peringkat Guru</CardTitle>
+                        <CardTitle>Tabel Setoran Guru</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <div className="relative overflow-y-auto h-96">
@@ -568,6 +666,7 @@ export default function SispendikDashboard() {
                                         </TableHead>
                                         <TableHead>Nama Guru</TableHead>
                                         <TableHead>Jenis Sampah</TableHead>
+                                        <TableHead>Kategori</TableHead>
                                         <TableHead className="text-right">
                                             Total Sampah
                                         </TableHead>
@@ -577,7 +676,7 @@ export default function SispendikDashboard() {
                                     {guruRanking.length === 0 ? (
                                         <TableRow>
                                             <TableCell
-                                                colSpan={4}
+                                                colSpan={5}
                                                 className="text-center h-32"
                                             >
                                                 Belum ada data
@@ -592,17 +691,68 @@ export default function SispendikDashboard() {
                                                 <TableCell className="text-center font-medium">
                                                     {idx + 1}
                                                 </TableCell>
+                                                <TableCell>{g.guruName}</TableCell>
+                                            <TableCell>{g.wasteTypes || '-'}</TableCell>
+                                            <TableCell>
+                                                <span className="text-xs text-muted-foreground">
+                                                    {g.categories || '-'}
+                                                </span>
+                                            </TableCell>
+                                            <TableCell className="text-right">
+                                                {Number(g.totalKg || 0).toFixed(2)} kg
+                                            </TableCell>
+                                            </TableRow>
+                                        ))
+                                    )}
+                                </TableBody>
+                            </Table>
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+
+            {/* Masyarakat Section */}
+            <div className="grid grid-cols-1 gap-6">
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Tabel Setoran Masyarakat</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="relative overflow-y-auto h-96">
+                            <Table>
+                                <TableHeader className="sticky top-0 bg-background z-10">
+                                    <TableRow>
+                                        <TableHead>Jenis Sampah</TableHead>
+                                        <TableHead>Kategori</TableHead>
+                                        <TableHead className="text-right">
+                                            Total Sampah
+                                        </TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {masyarakatTotals.length === 0 ? (
+                                        <TableRow>
+                                            <TableCell
+                                                colSpan={3}
+                                                className="text-center h-32"
+                                            >
+                                                Belum ada data
+                                            </TableCell>
+                                        </TableRow>
+                                    ) : (
+                                        masyarakatTotals.map((row) => (
+                                            <TableRow
+                                                key={`${row.wasteType}-${row.category}`}
+                                                className="hover:bg-muted/50"
+                                            >
                                                 <TableCell>
-                                                    {g.guruName}
+                                                    {row.wasteType}
                                                 </TableCell>
                                                 <TableCell>
-                                                    {g.wasteTypes || '-'}
+                                                    {row.category || '-'}
                                                 </TableCell>
                                                 <TableCell className="text-right">
-                                                    {Number(
-                                                        g.totalKg || 0,
-                                                    ).toFixed(2)}{' '}
-                                                    kg
+                                                    {Number(row.totalKg || 0).toFixed(2)} kg
                                                 </TableCell>
                                             </TableRow>
                                         ))

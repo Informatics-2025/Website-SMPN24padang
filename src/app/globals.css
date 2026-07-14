@@ -162,6 +162,15 @@
         td {
             padding: 4px 8px !important;
         }
+
+        .print-break-inside-avoid {
+            break-inside: avoid-page;
+            page-break-inside: avoid;
+        }
+
+        .print\:hidden {
+            display: none !important;
+        }
     }
 }
 
