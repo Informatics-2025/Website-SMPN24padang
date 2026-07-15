@@ -267,16 +267,29 @@ export function TabLaporanSispendik() {
                       <TableCell className="font-medium print:px-1">{row.kelas}</TableCell>
                       {row.months.map((value, index) => (
                         <TableCell key={index} className="text-right print:px-1">
-                          {value.toLocaleString("id-ID")}
+                          {value.toLocaleString("id-ID")} kg
                         </TableCell>
                       ))}
                       <TableCell className="text-right font-medium print:px-1">
                         {row.months
                           .reduce((total, value) => total + value, 0)
-                          .toLocaleString("id-ID")}
+                          .toLocaleString("id-ID")} kg
                       </TableCell>
                     </TableRow>
                   ))
+                )}
+                {!loading && progress.length > 0 && (
+                  <TableRow className="font-bold">
+                    <TableCell className="print:px-1">Total Keseluruhan</TableCell>
+                    {monthlyTotals.map((total, index) => (
+                      <TableCell key={index} className="text-right print:px-1">
+                        {total.toLocaleString("id-ID")} kg
+                      </TableCell>
+                    ))}
+                    <TableCell className="text-right print:px-1">
+                      {grandTotal.toLocaleString("id-ID")} kg
+                    </TableCell>
+                  </TableRow>
                 )}
               </TableBody>
             </Table>
@@ -321,7 +334,7 @@ export function TabLaporanSispendik() {
                             {MONTHS[index].slice(0, 3)}
                           </div>
                           <div className="mt-1 text-right font-semibold">
-                            {value.toLocaleString("id-ID")}
+                            {value.toLocaleString("id-ID")} kg
                           </div>
                         </div>
                       ))}
