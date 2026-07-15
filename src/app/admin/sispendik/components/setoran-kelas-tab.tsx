@@ -379,8 +379,8 @@ export function TabSetoranKelas({ kelas, jenisSampah }: TabSetoranKelasProps) {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <Card className="lg:col-span-2 print:break-inside-avoid">
-          <CardHeader className="flex items-center justify-end gap-2 sm:flex-row flex-col">
+        <Card className="lg:col-span-2 print:break-inside-avoid print:border-0 print:shadow-none print:p-0">
+          <CardHeader className="flex items-center justify-end gap-2 sm:flex-row flex-col print:hidden">
             <div className="flex items-center flex-wrap gap-2 w-full sm:w-auto print:hidden">
               <Select
                 value={selectedMonth.toString()}
@@ -441,6 +441,9 @@ export function TabSetoranKelas({ kelas, jenisSampah }: TabSetoranKelasProps) {
             <div ref={printRef} className="print:block">
               <div className="hidden print:block text-center mb-4">
                 <h1 className="text-xl font-bold">Laporan Bank Sampah</h1>
+                <p className="text-sm text-muted-foreground font-semibold">
+                  Bulan {MONTHS[selectedMonth - 1]} {selectedYear}
+                </p>
               </div>
               <div className="hidden md:block overflow-x-auto rounded border print:block print:overflow-visible print:rounded-none print:border-0">
                 <Table className="min-w-full w-full print:min-w-0">

@@ -95,10 +95,21 @@ export function TabLaporanSispendik() {
     name: MONTHS[row.month - 1],
   }));
 
+  // Calculate monthly totals across all classes for the bottom row of Perkembangan Sampah per Kelas
+  const monthlyTotals = useMemo(() => {
+    return Array.from({ length: 12 }, (_, monthIndex) => {
+      return progress.reduce((sum, row) => sum + (row.months[monthIndex] || 0), 0);
+    });
+  }, [progress]);
+
+  const grandTotal = useMemo(() => {
+    return monthlyTotals.reduce((sum, val) => sum + val, 0);
+  }, [monthlyTotals]);
+
   return (
     <div className="space-y-6">
       <div className="hidden print:block">
-        <h2 className="text-xl font-bold">Laporan Sispendig SMPN 24 Padang</h2>
+        <h2 className="text-xl font-bold">Laporan Sispendik SMPN 24 Padang</h2>
         <p className="text-sm text-muted-foreground">Tahun {year}</p>
       </div>
 
@@ -129,28 +140,26 @@ export function TabLaporanSispendik() {
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card className="print-break-inside-avoid">
-          <CardHeader>
-            <CardTitle>Total Perolehan {year}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">
+      <Card className="print:hidden print-break-inside-avoid print:shadow-none print:border-0 print:p-0">
+        <CardContent className="p-4 print:p-0 grid grid-cols-2 gap-4 divide-x divide-border print:divide-black/20">
+          <div className="space-y-1">
+            <p className="text-sm font-medium text-muted-foreground print:text-xs print:font-semibold">
+              Total Perolehan {year}
+            </p>
+            <p className="text-2xl font-bold tracking-tight text-green-700 print:text-lg print:text-black">
               {totalKg.toLocaleString("id-ID")} kg
             </p>
-          </CardContent>
-        </Card>
-        <Card className="print-break-inside-avoid">
-          <CardHeader>
-            <CardTitle>Nilai Perolehan {year}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">
+          </div>
+          <div className="space-y-1 pl-4">
+            <p className="text-sm font-medium text-muted-foreground print:text-xs print:font-semibold">
+              Nilai Perolehan {year}
+            </p>
+            <p className="text-2xl font-bold tracking-tight text-green-700 print:text-lg print:text-black">
               Rp {totalValue.toLocaleString("id-ID")}
             </p>
-          </CardContent>
-        </Card>
-      </div>
+          </div>
+        </CardContent>
+      </Card>
 
       <Card className="print:hidden print-break-inside-avoid">
         <CardHeader>
@@ -180,12 +189,12 @@ export function TabLaporanSispendik() {
         </CardContent>
       </Card>
 
-      <Card className="print-break-inside-avoid">
-        <CardHeader>
-          <CardTitle>Tabel Perolehan Keseluruhan per Bulan</CardTitle>
+      <Card className="print-break-inside-avoid print:shadow-none print:border-0 print:p-0">
+        <CardHeader className="print:px-0">
+          <CardTitle className="print:text-lg">Tabel Perolehan Keseluruhan per Bulan</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto rounded border">
+        <CardContent className="print:p-0">
+          <div className="overflow-x-auto rounded border print:border-0 print:overflow-visible">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -223,26 +232,26 @@ export function TabLaporanSispendik() {
         </CardContent>
       </Card>
 
-      <Card className="print-break-inside-avoid">
-        <CardHeader>
-          <CardTitle>Perkembangan Sampah per Kelas ({year})</CardTitle>
-          <p className="text-sm text-muted-foreground">
+      <Card className="print-break-inside-avoid print:shadow-none print:border-0 print:p-0">
+        <CardHeader className="print:px-0">
+          <CardTitle className="print:text-lg">Perkembangan Sampah per Kelas ({year})</CardTitle>
+          <p className="text-sm text-muted-foreground print:hidden">
             Laporan Tahunan per kelas, menampilkan total sampah yang dikumpulkan
             setiap bulan dan total keseluruhan.
           </p>
         </CardHeader>
-        <CardContent>
-          <div className="hidden md:block overflow-x-auto rounded border print:overflow-visible print:rounded-none print:border-0">
-            <Table className="min-w-full print:min-w-full">
+        <CardContent className="print:p-0">
+          <div className="hidden md:block print:block overflow-x-auto rounded border print:overflow-visible print:rounded-none print:border-0">
+            <Table className="min-w-full print:min-w-full print:text-[10px]">
               <TableHeader>
                 <TableRow>
-                  <TableHead>Kelas</TableHead>
+                  <TableHead className="print:px-1">Kelas</TableHead>
                   {MONTHS.map((month) => (
-                    <TableHead key={month} className="text-right">
+                    <TableHead key={month} className="text-right print:px-1">
                       {month.slice(0, 3)}
                     </TableHead>
                   ))}
-                  <TableHead className="text-right">Total</TableHead>
+                  <TableHead className="text-right print:px-1">Total</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -255,13 +264,13 @@ export function TabLaporanSispendik() {
                 ) : (
                   progress.map((row) => (
                     <TableRow key={row.kelas}>
-                      <TableCell className="font-medium">{row.kelas}</TableCell>
+                      <TableCell className="font-medium print:px-1">{row.kelas}</TableCell>
                       {row.months.map((value, index) => (
-                        <TableCell key={index} className="text-right">
+                        <TableCell key={index} className="text-right print:px-1">
                           {value.toLocaleString("id-ID")}
                         </TableCell>
                       ))}
-                      <TableCell className="text-right font-medium">
+                      <TableCell className="text-right font-medium print:px-1">
                         {row.months
                           .reduce((total, value) => total + value, 0)
                           .toLocaleString("id-ID")}

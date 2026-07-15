@@ -716,7 +716,7 @@ export async function getPerkembanganSampahKelas(year: number) {
             );
 
         const byClassMonth = new Map(
-            totals.map((item) => [`${item.kelasId}-${item.month}`, Number(item.totalKg || 0)]),
+            totals.map((item) => [`${item.kelasId}-${Number(item.month)}`, Number(item.totalKg || 0)]),
         );
         const data = kelasResponse.data.map((item) => ({
             kelasId: item.id,

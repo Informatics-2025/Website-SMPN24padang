@@ -7,7 +7,7 @@ import Tab3_Documentation from './Tab3_Documentation';
 export default function SispendikPage() {
     return (
         <div className="container mx-auto py-6">
-            <div className="space-y-4 text-center">
+            <div className="space-y-4 text-center print:hidden">
                 <div className="flex items-center justify-center gap-2">
                     <Recycle className="h-8 w-8 text-green-600" />
                     <h2 className="text-3xl font-bold tracking-tight">
@@ -21,7 +21,7 @@ export default function SispendikPage() {
             </div>
 
             <Tabs defaultValue="news" className="w-full mt-6">
-                <TabsList className="grid w-full grid-cols-3 bg-muted p-0 border-b">
+                <TabsList className="grid w-full grid-cols-3 bg-muted p-0 border-b print:hidden">
                     <TabsTrigger
                         value="news"
                         className="font-bold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-none"

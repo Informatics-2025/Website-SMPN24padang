@@ -36,7 +36,7 @@ import {
     CartesianGrid,
     Cell,
 } from 'recharts';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Printer } from 'lucide-react';
 
 const MONTHS = [
     'Januari',
@@ -159,6 +159,24 @@ const renderCategoryTick = ({ x, y, payload, textAnchor }: any) => {
 export default function SispendikDashboard() {
     const [month, setMonth] = useState(new Date().getMonth() + 1);
     const [year, setYear] = useState(new Date().getFullYear());
+    const [printSection, setPrintSection] = useState<'perkembangan' | 'guru' | 'masyarakat' | null>(null);
+
+    const handlePrint = (section: 'perkembangan' | 'guru' | 'masyarakat') => {
+        setPrintSection(section);
+        setTimeout(() => {
+            window.print();
+        }, 150);
+    };
+
+    useEffect(() => {
+        const handleAfterPrint = () => {
+            setPrintSection(null);
+        };
+        window.addEventListener('afterprint', handleAfterPrint);
+        return () => {
+            window.removeEventListener('afterprint', handleAfterPrint);
+        };
+    }, []);
     const [classTotals, setClassTotals] = useState<ClassRanking[]>([]);
     const [classProgress, setClassProgress] = useState<{
         kelas: string;

@@ -165,7 +165,7 @@ export function TabSetoranMasyarakat({
 
   return (
     <div className="space-y-6">
-      <Card>
+      <Card className="print:hidden">
         <CardHeader>
           <CardTitle>
             {editingId ? "Edit Setoran Masyarakat" : "Input Setoran Masyarakat"}
@@ -243,8 +243,8 @@ export function TabSetoranMasyarakat({
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader className="flex flex-wrap items-center justify-between gap-3">
+      <Card className="print:border-0 print:shadow-none print:p-0">
+        <CardHeader className="flex flex-wrap items-center justify-between gap-3 print:hidden">
           <CardTitle>Daftar Setoran Masyarakat</CardTitle>
           <div className="flex flex-wrap items-center gap-2">
             <Select
@@ -295,7 +295,7 @@ export function TabSetoranMasyarakat({
               Bulan {MONTHS[month - 1]} {year}
             </p>
           </div>
-          <div className="hidden md:block overflow-x-auto rounded border print:overflow-visible print:rounded-none print:border-0">
+          <div className="hidden md:block overflow-x-auto rounded border print:block print:overflow-visible print:rounded-none print:border-0">
             <Table className="min-w-full print:min-w-0">
               <TableHeader>
                 <TableRow>

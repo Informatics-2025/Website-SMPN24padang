@@ -17,7 +17,7 @@ export default function SispendikClient(props: SispendikClientProps) {
 
     return (
         <Tabs value={tabValue} onValueChange={handleTabChange} className="w-full">
-            <div className="mb-4 block sm:hidden">
+            <div className="mb-4 block sm:hidden print:hidden">
                 <label htmlFor="sispendik-tab-select" className="sr-only">
                     Pilih tab
                 </label>

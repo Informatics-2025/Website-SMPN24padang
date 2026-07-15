@@ -321,13 +321,13 @@ export function TabSetoranGuru({
 
   return (
     <div>
-      <Card className="relative">
+      <Card className="relative print:border-0 print:shadow-none print:p-0">
         {loading && (
-          <div className="absolute inset-0 bg-background/50 flex items-center justify-center z-10 rounded-md">
+          <div className="absolute inset-0 bg-background/50 flex items-center justify-center z-10 rounded-md print:hidden">
             <Loader2 className="h-10 w-10 animate-spin" />
           </div>
         )}
-        <CardHeader>
+        <CardHeader className="print:hidden">
           <div className="flex items-center justify-between print:hidden">
             <div>
               <CardTitle className="text-xl font-bold">
@@ -390,7 +390,7 @@ export function TabSetoranGuru({
                 {selectedYear}
               </h1>
             </div>
-            <div className="hidden md:block overflow-x-auto rounded border print:overflow-visible print:rounded-none print:border-0">
+            <div className="hidden md:block overflow-x-auto rounded border print:block print:overflow-visible print:rounded-none print:border-0">
               <Table className="min-w-full print:min-w-0">
                 <TableHeader>
                   <TableRow>
