@@ -461,7 +461,7 @@ export function TabSetoranKelas({ kelas, jenisSampah }: TabSetoranKelasProps) {
                                     Laporan Bank Sampah
                                 </h1>
                             </div>
-                            <div className="overflow-x-auto rounded border print:overflow-visible print:rounded-none print:border-0">
+                            <div className="hidden md:block overflow-x-auto rounded border print:block print:overflow-visible print:rounded-none print:border-0">
                                 <Table className="min-w-full w-full print:min-w-0">
                                     <TableHeader>
                                         <TableRow>
@@ -601,6 +601,56 @@ export function TabSetoranKelas({ kelas, jenisSampah }: TabSetoranKelasProps) {
                                         </TableRow>
                                     </tfoot>
                                 </Table>
+                            </div>
+                            <div className="space-y-4 md:hidden">
+                                {filteredRows.length === 0 ? (
+                                    <div className="rounded-lg border p-4 text-center">
+                                        Tidak ada data sesuai filter.
+                                    </div>
+                                ) : (
+                                    filteredRows.map((row: any, idx: number) => (
+                                        <Card key={`${row.kelasId}-${idx}`} className="border">
+                                            <CardContent className="space-y-3 p-4">
+                                                <div className="flex items-start justify-between gap-3">
+                                                    <div>
+                                                        <p className="text-sm font-semibold">{`${row.tingkat}${row.huruf}`}</p>
+                                                        <p className="text-xs text-muted-foreground truncate max-w-[220px]" title={row.jenisList || '-'}>
+                                                            {row.jenisList || '-'}
+                                                        </p>
+                                                    </div>
+                                                    <p className="text-sm font-semibold">Rp {Number(row.totalValue || 0).toLocaleString('id-ID')}</p>
+                                                </div>
+                                                <div className="grid gap-2 text-sm">
+                                                    <div className="flex justify-between gap-2">
+                                                        <span className="text-muted-foreground">Total Kg</span>
+                                                        <span>{Number(row.total || 0).toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}</span>
+                                                    </div>
+                                                </div>
+                                                <div className="flex gap-2">
+                                                    <Button className="flex-1" size="sm" variant="outline" onClick={() => openManage({ id: row.kelasId, tingkat: row.tingkat, huruf: row.huruf })}>
+                                                        Edit
+                                                    </Button>
+                                                    <Button className="flex-1" size="sm" variant="destructive" onClick={() => {
+                                                        setSelectedClass(row);
+                                                        setResetDialogOpen(true);
+                                                    }}>
+                                                        Reset
+                                                    </Button>
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+                                    ))
+                                )}
+                                <div className="rounded-lg border bg-muted p-4 text-sm font-semibold">
+                                    <div className="flex justify-between">
+                                        <span>Total Kg</span>
+                                        <span>{filteredSumKg.toLocaleString('id-ID', { maximumFractionDigits: 2 })}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span>Total Rp</span>
+                                        <span>Rp {filteredSumValue.toLocaleString('id-ID')}</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </CardContent>

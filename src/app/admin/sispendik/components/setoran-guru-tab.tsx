@@ -393,86 +393,133 @@ export function TabSetoranGuru({
                                 Laporan Setoran Guru - {MONTHS[selectedMonth - 1]} {selectedYear}
                             </h1>
                         </div>
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Nama Guru</TableHead>
-                                    <TableHead>Jenis Sampah</TableHead>
-                                    <TableHead>Jumlah Setoran</TableHead>
-                                    <TableHead>Total (Kg)</TableHead>
-                                    <TableHead>Total (Rp)</TableHead>
-                                    <TableHead className="text-right print:hidden">
-                                        Aksi
-                                    </TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {guruSummary.length > 0 ? (
-                                    guruSummary.map((guru) => (
-                                        <TableRow key={guru.id}>
-                                            <TableCell className="font-medium">
-                                                {guru.namaGuru}
-                                            </TableCell>
-                                            <TableCell>
-                                                {guru.wasteTypes || '-'}
-                                            </TableCell>
-                                            <TableCell>
-                                                {guru.setoranCount}
-                                            </TableCell>
-                                            <TableCell>
-                                                {guru.totalKg.toLocaleString(
-                                                    'id-ID',
-                                                    {
-                                                        maximumFractionDigits: 2,
-                                                    },
-                                                )}
-                                            </TableCell>
-                                            <TableCell>
-                                                Rp{' '}
-                                                {guru.totalValue.toLocaleString(
-                                                    'id-ID',
-                                                )}
-                                            </TableCell>
-                                            <TableCell className="text-right print:hidden">
-                                                <div className="flex gap-2 justify-end">
-                                                    <Button
-                                                        variant="outline"
-                                                        size="icon"
-                                                        title="Kelola Setoran"
-                                                        onClick={() =>
-                                                            openManageGuru(guru)
-                                                        }
-                                                    >
-                                                        <Pencil className="h-4 w-4" />
-                                                    </Button>
-                                                    <Button
-                                                        variant="destructive"
-                                                        size="icon"
-                                                        title="Hapus Guru"
-                                                        onClick={() =>
-                                                            setDeletingGuru(
-                                                                guru,
-                                                            )
-                                                        }
-                                                    >
-                                                        <Trash2 className="h-4 w-4" />
-                                                    </Button>
-                                                </div>
+                        <div className="hidden md:block">
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Nama Guru</TableHead>
+                                        <TableHead>Jenis Sampah</TableHead>
+                                        <TableHead>Jumlah Setoran</TableHead>
+                                        <TableHead>Total (Kg)</TableHead>
+                                        <TableHead>Total (Rp)</TableHead>
+                                        <TableHead className="text-right print:hidden">
+                                            Aksi
+                                        </TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {guruSummary.length > 0 ? (
+                                        guruSummary.map((guru) => (
+                                            <TableRow key={guru.id}>
+                                                <TableCell className="font-medium">
+                                                    {guru.namaGuru}
+                                                </TableCell>
+                                                <TableCell>
+                                                    {guru.wasteTypes || '-'}
+                                                </TableCell>
+                                                <TableCell>
+                                                    {guru.setoranCount}
+                                                </TableCell>
+                                                <TableCell>
+                                                    {guru.totalKg.toLocaleString(
+                                                        'id-ID',
+                                                        {
+                                                            maximumFractionDigits: 2,
+                                                        },
+                                                    )}
+                                                </TableCell>
+                                                <TableCell>
+                                                    Rp{' '}
+                                                    {guru.totalValue.toLocaleString(
+                                                        'id-ID',
+                                                    )}
+                                                </TableCell>
+                                                <TableCell className="text-right print:hidden">
+                                                    <div className="flex gap-2 justify-end">
+                                                        <Button
+                                                            variant="outline"
+                                                            size="icon"
+                                                            title="Kelola Setoran"
+                                                            onClick={() =>
+                                                                openManageGuru(guru)
+                                                            }
+                                                        >
+                                                            <Pencil className="h-4 w-4" />
+                                                        </Button>
+                                                        <Button
+                                                            variant="destructive"
+                                                            size="icon"
+                                                            title="Hapus Guru"
+                                                            onClick={() =>
+                                                                setDeletingGuru(
+                                                                    guru,
+                                                                )
+                                                            }
+                                                        >
+                                                            <Trash2 className="h-4 w-4" />
+                                                        </Button>
+                                                    </div>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))
+                                    ) : (
+                                        <TableRow>
+                                            <TableCell
+                                                colSpan={6}
+                                                className="h-24 text-center"
+                                            >
+                                                Belum ada data guru.
                                             </TableCell>
                                         </TableRow>
-                                    ))
-                                ) : (
-                                    <TableRow>
-                                        <TableCell
-                                            colSpan={6}
-                                            className="h-24 text-center"
-                                        >
-                                            Belum ada data guru.
-                                        </TableCell>
-                                    </TableRow>
-                                )}
-                            </TableBody>
-                        </Table>
+                                    )}
+                                </TableBody>
+                            </Table>
+                        </div>
+                        <div className="space-y-4 md:hidden">
+                            {guruSummary.length === 0 ? (
+                                <div className="rounded-lg border p-4 text-center">
+                                    Belum ada data guru.
+                                </div>
+                            ) : (
+                                guruSummary.map((guru) => (
+                                    <Card key={guru.id} className="border">
+                                        <CardContent className="space-y-3 p-4">
+                                            <div className="flex items-start justify-between gap-3">
+                                                <div>
+                                                    <p className="text-sm font-semibold">
+                                                        {guru.namaGuru}
+                                                    </p>
+                                                    <p className="text-xs text-muted-foreground truncate max-w-[200px]" title={guru.wasteTypes || '-'}>
+                                                        {guru.wasteTypes || '-'}
+                                                    </p>
+                                                </div>
+                                                <p className="text-sm font-semibold">
+                                                    Rp {guru.totalValue.toLocaleString('id-ID')}
+                                                </p>
+                                            </div>
+                                            <div className="grid gap-2 text-sm">
+                                                <div className="flex justify-between gap-2">
+                                                    <span className="text-muted-foreground">Setoran</span>
+                                                    <span>{guru.setoranCount}</span>
+                                                </div>
+                                                <div className="flex justify-between gap-2">
+                                                    <span className="text-muted-foreground">Total Kg</span>
+                                                    <span>{guru.totalKg.toLocaleString('id-ID', { maximumFractionDigits: 2 })}</span>
+                                                </div>
+                                            </div>
+                                            <div className="flex gap-2">
+                                                <Button className="flex-1" size="sm" variant="outline" onClick={() => openManageGuru(guru)}>
+                                                    Kelola
+                                                </Button>
+                                                <Button className="flex-1" size="sm" variant="destructive" onClick={() => setDeletingGuru(guru)}>
+                                                    Hapus
+                                                </Button>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                ))
+                            )}
+                        </div>
                     </div>
                 </CardContent>
             </Card>

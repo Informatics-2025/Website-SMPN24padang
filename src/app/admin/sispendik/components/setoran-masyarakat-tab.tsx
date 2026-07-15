@@ -187,7 +187,7 @@ export function TabSetoranMasyarakat({ jenisSampah }: { jenisSampah: JenisSampah
                         <h3 className="text-lg font-semibold">Daftar Setoran Masyarakat</h3>
                         <p className="text-sm text-muted-foreground">Bulan {MONTHS[month - 1]} {year}</p>
                     </div>
-                    <div className="overflow-x-auto rounded border">
+                    <div className="hidden md:block overflow-x-auto rounded border">
                         <Table>
                             <TableHeader>
                                 <TableRow>
@@ -233,6 +233,49 @@ export function TabSetoranMasyarakat({ jenisSampah }: { jenisSampah: JenisSampah
                                 )}
                             </TableBody>
                         </Table>
+                    </div>
+                    <div className="space-y-4 md:hidden">
+                        {loading ? (
+                            <div className="rounded-lg border p-4 text-center">Memuat…</div>
+                        ) : rows.length === 0 ? (
+                            <div className="rounded-lg border p-4 text-center">Belum ada setoran.</div>
+                        ) : (
+                            rows.map((row) => (
+                                <Card key={row.id} className="border">
+                                    <CardContent className="space-y-3 p-4">
+                                        <div className="flex items-start justify-between gap-3">
+                                            <div>
+                                                <p className="text-sm font-semibold">{row.namaPenyetor}</p>
+                                                <p className="text-xs text-muted-foreground">{new Date(row.tanggalSetoran).toLocaleDateString('id-ID')}</p>
+                                            </div>
+                                            <p className="text-sm font-semibold">Rp {(Number(row.jumlahKg) * Number(row.hargaPerKg)).toLocaleString('id-ID')}</p>
+                                        </div>
+                                        <div className="grid gap-2 text-sm">
+                                            <div className="flex justify-between gap-2">
+                                                <span className="text-muted-foreground">Jenis</span>
+                                                <span>{row.jenisSampah}</span>
+                                            </div>
+                                            <div className="flex justify-between gap-2">
+                                                <span className="text-muted-foreground">Kategori</span>
+                                                <span className="capitalize">{row.kategori}</span>
+                                            </div>
+                                            <div className="flex justify-between gap-2">
+                                                <span className="text-muted-foreground">Kg</span>
+                                                <span>{Number(row.jumlahKg).toLocaleString('id-ID')}</span>
+                                            </div>
+                                        </div>
+                                        <div className="flex gap-2">
+                                            <Button className="flex-1" size="sm" variant="outline" onClick={() => startEdit(row)}>
+                                                Edit
+                                            </Button>
+                                            <Button className="flex-1" size="sm" variant="destructive" onClick={() => remove(row.id)}>
+                                                Hapus
+                                            </Button>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            ))
+                        )}
                     </div>
                 </CardContent>
             </Card>

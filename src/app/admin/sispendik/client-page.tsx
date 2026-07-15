@@ -11,9 +11,12 @@ import { TabLaporanSispendik } from './components/laporan-sispendik-tab';
 // --- MAIN WRAPPER COMPONENT ---
 export default function SispendikClient(props: SispendikClientProps) {
     const [tabValue, setTabValue] = useState<'kelas' | 'guru' | 'masyarakat' | 'laporan'>('kelas');
+    const handleTabChange = (value: string) => {
+        setTabValue(value as 'kelas' | 'guru' | 'masyarakat' | 'laporan');
+    };
 
     return (
-        <Tabs value={tabValue} onValueChange={setTabValue} className="w-full">
+        <Tabs value={tabValue} onValueChange={handleTabChange} className="w-full">
             <div className="mb-4 block sm:hidden">
                 <label htmlFor="sispendik-tab-select" className="sr-only">
                     Pilih tab
