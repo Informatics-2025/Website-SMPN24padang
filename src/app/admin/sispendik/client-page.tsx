@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TabSetoranGuru } from './components/setoran-guru-tab';
 import { TabSetoranKelas } from './components/setoran-kelas-tab';
@@ -9,34 +10,54 @@ import { TabLaporanSispendik } from './components/laporan-sispendik-tab';
 
 // --- MAIN WRAPPER COMPONENT ---
 export default function SispendikClient(props: SispendikClientProps) {
+    const [tabValue, setTabValue] = useState<'kelas' | 'guru' | 'masyarakat' | 'laporan'>('kelas');
+
     return (
-        <Tabs defaultValue="kelas" className="w-full">
-            <TabsList className="grid w-full grid-cols-4 print:hidden">
-                <TabsTrigger
-                    value="kelas"
-                    className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+        <Tabs value={tabValue} onValueChange={setTabValue} className="w-full">
+            <div className="mb-4 block sm:hidden">
+                <label htmlFor="sispendik-tab-select" className="sr-only">
+                    Pilih tab
+                </label>
+                <select
+                    id="sispendik-tab-select"
+                    className="w-full rounded-md border border-muted bg-background px-3 py-2 text-sm text-foreground shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    value={tabValue}
+                    onChange={(event) => setTabValue(event.target.value as any)}
                 >
-                    Setoran per Kelas
-                </TabsTrigger>
-                <TabsTrigger
-                    value="guru"
-                    className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-                >
-                    Setoran Guru
-                </TabsTrigger>
-                <TabsTrigger
-                    value="masyarakat"
-                    className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-                >
-                    Setoran Masyarakat
-                </TabsTrigger>
-                <TabsTrigger
-                    value="laporan"
-                    className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-                >
-                    Laporan
-                </TabsTrigger>
-            </TabsList>
+                    <option value="kelas">Setoran per Kelas</option>
+                    <option value="guru">Setoran Guru</option>
+                    <option value="masyarakat">Setoran Masyarakat</option>
+                    <option value="laporan">Laporan</option>
+                </select>
+            </div>
+            <div className="hidden sm:block overflow-x-auto print:hidden">
+                <TabsList className="grid w-full grid-cols-4 gap-2">
+                    <TabsTrigger
+                        value="kelas"
+                        className="min-w-[140px] truncate data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                    >
+                        Setoran per Kelas
+                    </TabsTrigger>
+                    <TabsTrigger
+                        value="guru"
+                        className="min-w-[140px] truncate data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                    >
+                        Setoran Guru
+                    </TabsTrigger>
+                    <TabsTrigger
+                        value="masyarakat"
+                        className="min-w-[140px] truncate data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                    >
+                        Setoran Masyarakat
+                    </TabsTrigger>
+                    <TabsTrigger
+                        value="laporan"
+                        className="min-w-[140px] truncate data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                    >
+                        Laporan
+                    </TabsTrigger>
+                </TabsList>
+            </div>
             <TabsContent value="kelas">
                 <TabSetoranKelas
                     kelas={props.kelas}

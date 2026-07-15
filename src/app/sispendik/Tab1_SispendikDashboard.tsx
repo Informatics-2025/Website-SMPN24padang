@@ -129,6 +129,33 @@ const CustomGuruTooltip = ({ active, payload, label }: any) => {
     return null;
 };
 
+const renderCategoryTick = ({ x, y, payload, textAnchor }: any) => {
+    const value = String(payload.value || '');
+    const lineLength = 12;
+    const lines = [] as string[];
+
+    for (let i = 0; i < value.length; i += lineLength) {
+        lines.push(value.slice(i, i + lineLength));
+    }
+
+    return (
+        <g transform={`translate(${x},${y + 8})`}>
+            {lines.map((line, index) => (
+                <text
+                    key={index}
+                    x={0}
+                    y={index * 14}
+                    textAnchor={textAnchor || 'end'}
+                    fill="currentColor"
+                    fontSize={12}
+                >
+                    {line}
+                </text>
+            ))}
+        </g>
+    );
+};
+
 export default function SispendikDashboard() {
     const [month, setMonth] = useState(new Date().getMonth() + 1);
     const [year, setYear] = useState(new Date().getFullYear());
@@ -150,6 +177,7 @@ export default function SispendikDashboard() {
         'kelas',
     );
     const [loading, setLoading] = useState(true);
+    const [isMobileChart, setIsMobileChart] = useState(false);
 
     const maxClassTotal =
         classTotals.length > 0
@@ -162,6 +190,17 @@ export default function SispendikDashboard() {
 
     const currentYear = new Date().getFullYear();
     const years = Array.from({ length: 11 }, (_, i) => currentYear - 5 + i);
+
+    useEffect(() => {
+        const mediaQuery = window.matchMedia('(max-width: 768px)');
+        const handleResize = (event: MediaQueryListEvent) => {
+            setIsMobileChart(event.matches);
+        };
+
+        setIsMobileChart(mediaQuery.matches);
+        mediaQuery.addEventListener('change', handleResize);
+        return () => mediaQuery.removeEventListener('change', handleResize);
+    }, []);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -434,28 +473,56 @@ export default function SispendikDashboard() {
                         <ResponsiveContainer width="100%" height={350}>
                             <BarChart
                                 data={classTotals}
+                                layout={isMobileChart ? 'vertical' : 'horizontal'}
                                 margin={{
                                     top: 5,
                                     right: 20,
-                                    left: -10,
-                                    bottom: 50,
+                                    left: isMobileChart ? 20 : -10,
+                                    bottom: isMobileChart ? 20 : 50,
                                 }}
+                                barCategoryGap="20%"
+                                barSize={isMobileChart ? 18 : 24}
                             >
                                 <CartesianGrid strokeDasharray="3 3" />
-                                <XAxis
-                                    dataKey="className"
-                                    angle={-45}
-                                    textAnchor="end"
-                                    interval={0}
-                                />
-                                <YAxis
-                                    domain={[
-                                        0,
-                                        maxClassTotal > 0
-                                            ? Math.ceil(maxClassTotal * 1.1)
-                                            : 10,
-                                    ]}
-                                />
+                                {isMobileChart ? (
+                                    <>
+                                        <XAxis
+                                            type="number"
+                                            domain={[
+                                                0,
+                                                maxClassTotal > 0
+                                                    ? Math.ceil(maxClassTotal * 1.1)
+                                                    : 10,
+                                            ]}
+                                            tick={{ fontSize: 12 }}
+                                        />
+                                        <YAxis
+                                            type="category"
+                                            dataKey="className"
+                                            width={130}
+                                            tick={renderCategoryTick}
+                                        />
+                                    </>
+                                ) : (
+                                    <>
+                                        <XAxis
+                                            dataKey="className"
+                                            angle={-45}
+                                            textAnchor="end"
+                                            interval={0}
+                                            height={70}
+                                            tick={renderCategoryTick}
+                                        />
+                                        <YAxis
+                                            domain={[
+                                                0,
+                                                maxClassTotal > 0
+                                                    ? Math.ceil(maxClassTotal * 1.1)
+                                                    : 10,
+                                            ]}
+                                        />
+                                    </>
+                                )}
                                 <Tooltip
                                     content={<CustomClassTooltip />}
                                     cursor={{
@@ -608,28 +675,56 @@ export default function SispendikDashboard() {
                         <ResponsiveContainer width="100%" height={350}>
                             <BarChart
                                 data={guruRanking}
+                                layout={isMobileChart ? 'vertical' : 'horizontal'}
                                 margin={{
                                     top: 5,
                                     right: 20,
-                                    left: -10,
-                                    bottom: 50,
+                                    left: isMobileChart ? 20 : -10,
+                                    bottom: isMobileChart ? 20 : 50,
                                 }}
+                                barCategoryGap="20%"
+                                barSize={isMobileChart ? 18 : 24}
                             >
                                 <CartesianGrid strokeDasharray="3 3" />
-                                <XAxis
-                                    dataKey="guruName"
-                                    angle={-45}
-                                    textAnchor="end"
-                                    interval={0}
-                                />
-                                <YAxis
-                                    domain={[
-                                        0,
-                                        maxGuruKg > 0
-                                            ? Math.ceil(maxGuruKg * 1.1)
-                                            : 10,
-                                    ]}
-                                />
+                                {isMobileChart ? (
+                                    <>
+                                        <XAxis
+                                            type="number"
+                                            domain={[
+                                                0,
+                                                maxGuruKg > 0
+                                                    ? Math.ceil(maxGuruKg * 1.1)
+                                                    : 10,
+                                            ]}
+                                            tick={{ fontSize: 12 }}
+                                        />
+                                        <YAxis
+                                            type="category"
+                                            dataKey="guruName"
+                                            width={130}
+                                            tick={renderCategoryTick}
+                                        />
+                                    </>
+                                ) : (
+                                    <>
+                                        <XAxis
+                                            dataKey="guruName"
+                                            angle={-45}
+                                            textAnchor="end"
+                                            interval={0}
+                                            height={70}
+                                            tick={renderCategoryTick}
+                                        />
+                                        <YAxis
+                                            domain={[
+                                                0,
+                                                maxGuruKg > 0
+                                                    ? Math.ceil(maxGuruKg * 1.1)
+                                                    : 10,
+                                            ]}
+                                        />
+                                    </>
+                                )}
                                 <Tooltip
                                     content={<CustomGuruTooltip />}
                                     cursor={{

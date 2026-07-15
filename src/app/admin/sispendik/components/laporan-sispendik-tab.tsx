@@ -176,12 +176,12 @@ export function TabLaporanSispendik() {
                 <CardHeader>
                     <CardTitle>Perkembangan Sampah per Kelas ({year})</CardTitle>
                     <p className="text-sm text-muted-foreground">
-                        Urutan tetap 7A–7H, 8A–8H, lalu 9A–9H; bukan berdasarkan perolehan tertinggi.
+                        Laporan Tahunan per kelas, menampilkan total sampah yang dikumpulkan setiap bulan dan total keseluruhan.
                     </p>
                 </CardHeader>
                 <CardContent>
-                    <div className="overflow-x-auto rounded border print:overflow-visible print:rounded-none print:border-0">
-                        <Table className="min-w-[1100px] print:min-w-full">
+                    <div className="hidden md:block overflow-x-auto rounded border print:overflow-visible print:rounded-none print:border-0">
+                        <Table className="min-w-full print:min-w-full">
                             <TableHeader>
                                 <TableRow>
                                     <TableHead>Kelas</TableHead>
@@ -217,6 +217,50 @@ export function TabLaporanSispendik() {
                                 )}
                             </TableBody>
                         </Table>
+                    </div>
+                    <div className="grid gap-3 md:hidden">
+                        {loading ? (
+                            <div className="rounded-lg border border-muted p-4 text-center">
+                                Memuat…
+                            </div>
+                        ) : progress.length === 0 ? (
+                            <div className="rounded-lg border border-muted p-4 text-center">
+                                Belum ada data
+                            </div>
+                        ) : (
+                            progress.map((row) => {
+                                const totalValue = row.months.reduce((total, value) => total + value, 0);
+                                return (
+                                    <Card key={row.kelas} className="border">
+                                        <CardHeader className="space-y-1 p-4">
+                                            <div className="flex items-center justify-between gap-4">
+                                                <CardTitle className="text-sm font-semibold">
+                                                    {row.kelas}
+                                                </CardTitle>
+                                                <span className="text-sm font-semibold">
+                                                    {totalValue.toLocaleString('id-ID')} kg
+                                                </span>
+                                            </div>
+                                            <p className="text-xs text-muted-foreground">
+                                                Total per bulan
+                                            </p>
+                                        </CardHeader>
+                                        <CardContent className="grid grid-cols-3 gap-2 p-4">
+                                            {row.months.map((value, index) => (
+                                                <div key={index} className="rounded-lg bg-muted px-3 py-2 text-xs">
+                                                    <div className="font-medium">
+                                                        {MONTHS[index].slice(0, 3)}
+                                                    </div>
+                                                    <div className="mt-1 text-right font-semibold">
+                                                        {value.toLocaleString('id-ID')}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </CardContent>
+                                    </Card>
+                                );
+                            })
+                        )}
                     </div>
                 </CardContent>
             </Card>
