@@ -590,9 +590,9 @@ export default function SispendikDashboard() {
         <CardContent className="p-2.5 sm:p-4 pt-0 sm:pt-0">
           <div className="relative overflow-x-auto rounded-lg border border-border/70 shadow-inner max-h-[440px] scrollbar-thin">
             <Table className="min-w-[760px] sm:min-w-[860px] text-xs border-collapse">
-              <TableHeader className="sticky top-0 z-30 bg-muted/95 backdrop-blur-md">
+              <TableHeader className="sticky top-0 z-30 bg-muted">
                 <TableRow className="border-b border-border hover:bg-transparent">
-                  <TableHead className="sticky left-0 z-40 bg-muted/95 backdrop-blur-md font-bold text-left w-16 px-3 py-2.5 border-r border-border shadow-[1px_0_0_0_hsl(var(--border))]">
+                  <TableHead className="sticky left-0 z-40 bg-muted font-bold text-left w-16 px-3 py-2.5 border-r border-border shadow-[1px_0_0_0_hsl(var(--border))]">
                     Kelas
                   </TableHead>
                   {MONTHS.map((monthName) => (
@@ -603,7 +603,7 @@ export default function SispendikDashboard() {
                       {monthName.slice(0, 3)}
                     </TableHead>
                   ))}
-                  <TableHead className="sticky right-0 z-40 bg-emerald-100/90 dark:bg-emerald-950/90 backdrop-blur-md font-bold text-right min-w-[70px] sm:min-w-[82px] px-3 py-2.5 border-l border-border text-emerald-900 dark:text-emerald-200 shadow-[-1px_0_0_0_hsl(var(--border))]">
+                  <TableHead className="sticky right-0 z-40 bg-emerald-100 dark:bg-emerald-950 font-bold text-right min-w-[70px] sm:min-w-[82px] px-3 py-2.5 border-l border-border text-emerald-900 dark:text-emerald-200 shadow-[-1px_0_0_0_hsl(var(--border))]">
                     Total
                   </TableHead>
                 </TableRow>
@@ -627,9 +627,9 @@ export default function SispendikDashboard() {
                     return (
                       <TableRow
                         key={row.kelas}
-                        className="group hover:bg-muted/40 transition-colors border-b border-border/40"
+                        className="group hover:bg-muted/30 border-b border-border/40"
                       >
-                        <TableCell className="sticky left-0 z-20 bg-background/95 backdrop-blur-md group-hover:bg-muted/80 font-bold px-3 py-2 text-left border-r border-border/60 shadow-[1px_0_0_0_hsl(var(--border))]">
+                        <TableCell className="sticky left-0 z-20 bg-background group-hover:bg-muted/50 font-bold px-3 py-2 text-left border-r border-border/60 shadow-[1px_0_0_0_hsl(var(--border))]">
                           {row.kelas}
                         </TableCell>
                         {row.months.map((value, idx) => (
@@ -644,7 +644,7 @@ export default function SispendikDashboard() {
                             {value > 0 ? Number(value).toFixed(1) : "-"}
                           </TableCell>
                         ))}
-                        <TableCell className="sticky right-0 z-20 bg-emerald-50/80 dark:bg-emerald-950/40 group-hover:bg-emerald-100/80 dark:group-hover:bg-emerald-900/50 font-bold text-right px-3 py-2 text-emerald-700 dark:text-emerald-300 border-l border-border/60 shadow-[-1px_0_0_0_hsl(var(--border))] font-mono text-[11px] sm:text-xs tabular-nums">
+                        <TableCell className="sticky right-0 z-20 bg-emerald-50 dark:bg-emerald-950 group-hover:bg-emerald-100 dark:group-hover:bg-emerald-900 font-bold text-right px-3 py-2 text-emerald-700 dark:text-emerald-300 border-l border-border/60 shadow-[-1px_0_0_0_hsl(var(--border))] font-mono text-[11px] sm:text-xs tabular-nums">
                           {rowTotal > 0 ? Number(rowTotal).toFixed(2) : "0"}
                         </TableCell>
                       </TableRow>
