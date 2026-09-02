@@ -1,11 +1,5 @@
 "use client";
 
-import {
-  getGuruRanking,
-  getMasyarakatTotals,
-  getTopWasteTypes,
-  getTotalsSummary,
-} from "@/app/admin/sispendik/actions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -36,7 +30,7 @@ import {
   Trophy,
   Users,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Bar,
   BarChart,
@@ -47,7 +41,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { getPublicClassTotals, getPublicYearlyProgress } from "./actions";
+import { getPublicDashboardData } from "./actions";
 
 const MONTHS = [
   "Januari",
@@ -237,7 +231,7 @@ export default function SispendikDashboard() {
   const [progressLevelFilter, setProgressLevelFilter] = useState<LevelFilter>("all");
   const [topRankerType, setTopRankerType] = useState<"kelas" | "guru">("kelas");
 
-  const [classTotals, setClassTotals] = useState<ClassRanking[]>([]);
+  const [rawClassTotals, setRawClassTotals] = useState<ClassRanking[]>([]);
   const [classProgress, setClassProgress] = useState<
     { kelas: string; months: number[] }[]
   >([]);
@@ -245,7 +239,6 @@ export default function SispendikDashboard() {
   const [masyarakatTotals, setMasyarakatTotals] = useState<MasyarakatTotal[]>([]);
   const [totalWaste, setTotalWaste] = useState(0);
   const [totalIncome, setTotalIncome] = useState(0);
-  const [topClasses, setTopClasses] = useState<string[]>([]);
   const [topWasteTypes, setTopWasteTypes] = useState<TopWasteType[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -257,78 +250,24 @@ export default function SispendikDashboard() {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const [
-          progressData,
-          totalsData,
-          summary,
-          topWasteRes,
-          guruRankData,
-          masyarakatData,
-        ] = await Promise.all([
-          getPublicYearlyProgress(year),
-          getPublicClassTotals(month, year),
-          getTotalsSummary(month, year),
-          getTopWasteTypes(month, year),
-          getGuruRanking(month, year),
-          getMasyarakatTotals(month, year),
-        ]);
-
+        const res = await getPublicDashboardData(month, year);
         if (!isMounted) return;
 
-        // Yearly progress
-        if (progressData.data && Array.isArray(progressData.data)) {
-          setClassProgress(
-            progressData.data as { kelas: string; months: number[] }[],
-          );
+        if (res.data) {
+          setClassProgress(res.data.progress);
+          setRawClassTotals(res.data.classTotals as ClassRanking[]);
+          setTotalIncome(Number(res.data.summary.totalValue) || 0);
+          setTotalWaste(Number(res.data.summary.totalKg) || 0);
+          setTopWasteTypes(res.data.topWasteTypes as TopWasteType[]);
+          setGuruRanking(res.data.guruRanking as GuruRanking[]);
+          setMasyarakatTotals(res.data.masyarakatTotals as MasyarakatTotal[]);
         } else {
           setClassProgress([]);
-        }
-
-        // Class totals
-        if (totalsData.data && Array.isArray(totalsData.data)) {
-          const typedData = totalsData.data as ClassRanking[];
-          const filteredData = typedData.filter(
-            (c) => levelFilter === "all" || c.className.startsWith(levelFilter),
-          );
-          setClassTotals(filteredData);
-          const sortedTopClasses = [...filteredData]
-            .sort((a, b) => b.total - a.total)
-            .filter((c) => c.total > 0)
-            .slice(0, 3)
-            .map((c) => c.className);
-          setTopClasses(sortedTopClasses);
-        } else {
-          setClassTotals([]);
-          setTopClasses([]);
-        }
-
-        // Summary totals
-        if (summary.data) {
-          setTotalIncome(Number(summary.data.totalValue) || 0);
-          setTotalWaste(Number(summary.data.totalKg) || 0);
-        } else {
+          setRawClassTotals([]);
           setTotalIncome(0);
           setTotalWaste(0);
-        }
-
-        // Top waste types
-        if (topWasteRes.data && Array.isArray(topWasteRes.data)) {
-          setTopWasteTypes(topWasteRes.data as TopWasteType[]);
-        } else {
           setTopWasteTypes([]);
-        }
-
-        // Guru ranking
-        if (guruRankData.data && Array.isArray(guruRankData.data)) {
-          setGuruRanking(guruRankData.data as GuruRanking[]);
-        } else {
           setGuruRanking([]);
-        }
-
-        // Masyarakat totals
-        if (masyarakatData.data && Array.isArray(masyarakatData.data)) {
-          setMasyarakatTotals(masyarakatData.data as MasyarakatTotal[]);
-        } else {
           setMasyarakatTotals([]);
         }
       } catch (err) {
@@ -343,7 +282,21 @@ export default function SispendikDashboard() {
     return () => {
       isMounted = false;
     };
-  }, [month, year, levelFilter]);
+  }, [month, year]);
+
+  const classTotals = useMemo(() => {
+    return rawClassTotals.filter(
+      (c) => levelFilter === "all" || c.className.startsWith(levelFilter),
+    );
+  }, [rawClassTotals, levelFilter]);
+
+  const topClasses = useMemo(() => {
+    return [...classTotals]
+      .sort((a, b) => b.total - a.total)
+      .filter((c) => c.total > 0)
+      .slice(0, 3)
+      .map((c) => c.className);
+  }, [classTotals]);
 
   // Chart Dynamic Heights
   const classChartHeight = Math.max(340, classTotals.length * 26 + 40);
