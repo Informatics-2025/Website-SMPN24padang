@@ -7,8 +7,7 @@ import {
   uploadImageToSupabase,
 } from "@/lib/supabase-storage";
 import { desc, eq } from "drizzle-orm";
-import { revalidatePath, revalidateTag } from "next/cache";
-import { unstable_cache } from "next/cache";
+import { revalidatePath, revalidateTag, unstable_cache } from "next/cache";
 import { v4 as uuidv4 } from "uuid";
 import { NewsArticleSchema } from "./schemas";
 
@@ -22,7 +21,10 @@ export async function getNewsForAdmin() {
   return await db.select().from(news).orderBy(desc(news.date));
 }
 
-export async function createNewsArticle(prevState: any, formData: FormData) {
+export async function createNewsArticle(
+  prevState: unknown,
+  formData: FormData,
+) {
   const validatedFields = NewsArticleSchema.safeParse({
     title: formData.get("title"),
     description: formData.get("description"),
@@ -73,7 +75,7 @@ export async function createNewsArticle(prevState: any, formData: FormData) {
 export async function updateNewsArticle(
   id: string,
   currentImageUrl: string | null,
-  prevState: any,
+  prevState: unknown,
   formData: FormData,
 ) {
   const validatedFields = NewsArticleSchema.safeParse({

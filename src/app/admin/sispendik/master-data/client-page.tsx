@@ -1,10 +1,19 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import {
     Select,
@@ -21,23 +30,14 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-    AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { Pencil, Trash2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 import {
     createJenisSampah,
-    updateJenisSampah,
     deleteJenisSampah,
+    updateJenisSampah,
 } from '../actions';
 
 type JenisSampah = {
@@ -103,10 +103,10 @@ export default function MasterDataClient({
             setEditing(null);
             // Refresh data after successful operation
             router.refresh();
-        } catch (error: any) {
+        } catch (error: unknown) {
             toast({
                 title: 'Error',
-                description: error.message || 'Terjadi kesalahan',
+            description: error instanceof Error ? error.message : 'Terjadi kesalahan',
                 variant: 'destructive',
             });
         }
@@ -134,10 +134,10 @@ export default function MasterDataClient({
             } else {
                 throw new Error(result.error);
             }
-        } catch (error: any) {
+        } catch (error: unknown) {
             toast({
                 title: 'Error',
-                description: error.message || 'Gagal menghapus jenis sampah',
+            description: error instanceof Error ? error.message : 'Gagal menghapus jenis sampah',
                 variant: 'destructive',
             });
         }

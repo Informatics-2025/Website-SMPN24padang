@@ -129,7 +129,7 @@ async function Announcements() {
           </CardHeader>
           <CardContent>
             <div className="flex flex-col gap-4">
-              {announcements.map((item: any, index: number) => (
+              {announcements.map((item, index) => (
                 <React.Fragment key={item.id}>
                   <div className="flex flex-col gap-1.5">
                     <p className="text-sm text-muted-foreground">
@@ -195,7 +195,7 @@ async function LatestNews() {
         </div>
 
         <div className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {latestNews.map((item: any) => (
+          {latestNews.map((item) => (
             <Card
               key={item.id}
               className="flex flex-col overflow-hidden rounded-lg transition-shadow duration-300 hover:shadow-xl"

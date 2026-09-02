@@ -61,6 +61,26 @@ interface TabSetoranKelasProps {
   jenisSampah: JenisSampah[];
 }
 
+interface ClassTotalRow {
+  kelasId: number;
+  className?: string;
+  tingkat: number;
+  huruf: string;
+  total: string | number;
+  totalValue?: string | number;
+  jenisList: string | null;
+  categories?: string | null;
+}
+
+interface TotalsSummary {
+  totalKg: number;
+  totalValue: number;
+}
+
+function isLevelFilter(value: string): value is "all" | "7" | "8" | "9" {
+  return ["all", "7", "8", "9"].includes(value);
+}
+
 export function TabSetoranKelas({ kelas, jenisSampah }: TabSetoranKelasProps) {
   const { toast } = useToast();
 
@@ -79,7 +99,7 @@ export function TabSetoranKelas({ kelas, jenisSampah }: TabSetoranKelasProps) {
   const [selectedYear, setSelectedYear] = useState<number>(
     new Date().getFullYear(),
   );
-  const [tableData, setTableData] = useState<any[]>([]);
+  const [tableData, setTableData] = useState<ClassTotalRow[]>([]);
   const [sumKg, setSumKg] = useState<number>(0);
   const [sumValue, setSumValue] = useState<number>(0);
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -124,7 +144,9 @@ export function TabSetoranKelas({ kelas, jenisSampah }: TabSetoranKelasProps) {
   const [selectedJenis, setSelectedJenis] = useState<JenisSampah | null>(null);
 
   const [resetDialogOpen, setResetDialogOpen] = useState(false);
-  const [selectedClass, setSelectedClass] = useState<any | null>(null);
+  const [selectedClass, setSelectedClass] = useState<ClassTotalRow | null>(
+    null,
+  );
 
   const [addJenisId, setAddJenisId] = useState<string>("");
   const [addJumlah, setAddJumlah] = useState<string>("");
@@ -140,7 +162,7 @@ export function TabSetoranKelas({ kelas, jenisSampah }: TabSetoranKelasProps) {
   }, [jenisSampah]);
 
   const filteredRows = useMemo(() => {
-    let rows = tableData as any[];
+    let rows = tableData;
     if (tingkatFilter !== "all") {
       rows = rows.filter((r) => String(r.tingkat) === tingkatFilter);
     }
@@ -246,8 +268,9 @@ export function TabSetoranKelas({ kelas, jenisSampah }: TabSetoranKelasProps) {
       setTableData(buildEmptyRows());
     }
     if (summary.data) {
-      setSumKg(Number((summary.data as any).totalKg || 0));
-      setSumValue(Number((summary.data as any).totalValue || 0));
+      const totals = summary.data as TotalsSummary;
+      setSumKg(Number(totals.totalKg || 0));
+      setSumValue(Number(totals.totalValue || 0));
     }
   }, [selectedMonth, selectedYear, buildEmptyRows]);
 
@@ -414,7 +437,9 @@ export function TabSetoranKelas({ kelas, jenisSampah }: TabSetoranKelasProps) {
               </Select>
               <Select
                 value={tingkatFilter}
-                onValueChange={(v) => setTingkatFilter(v as any)}
+                onValueChange={(v) => {
+                  if (isLevelFilter(v)) setTingkatFilter(v);
+                }}
               >
                 <SelectTrigger className="w-32">
                   <SelectValue placeholder="Tingkat" />
@@ -473,7 +498,7 @@ export function TabSetoranKelas({ kelas, jenisSampah }: TabSetoranKelasProps) {
                         </TableCell>
                       </TableRow>
                     )}
-                    {filteredRows.map((row: any, idx: number) => (
+                    {filteredRows.map((row: ClassTotalRow, idx: number) => (
                       <TableRow key={`${row.kelasId}-${idx}`}>
                         <TableCell>{idx + 1}</TableCell>
                         <TableCell>{`${row.tingkat}${row.huruf}`}</TableCell>
@@ -555,7 +580,7 @@ export function TabSetoranKelas({ kelas, jenisSampah }: TabSetoranKelasProps) {
                     Tidak ada data sesuai filter.
                   </div>
                 ) : (
-                  filteredRows.map((row: any, idx: number) => (
+                  filteredRows.map((row: ClassTotalRow, idx: number) => (
                     <Card key={`${row.kelasId}-${idx}`} className="border">
                       <CardContent className="space-y-3 p-4">
                         <div className="flex items-start justify-between gap-3">
