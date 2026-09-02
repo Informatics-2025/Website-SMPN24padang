@@ -106,7 +106,7 @@ export const metadata: Metadata = {
         siteName: 'SMP Negeri 24 Padang',
         title: 'SMP Negeri 24 Padang | Membina Pikiran, Membentuk Masa Depan',
         description:
-            'Website resmi SMP Negeri 24 Padang (Spendupat), Kota Padang, Sumatera Barat. Jelajahi profil, prestasi, berita, galeri, bank sampah sekolah (Sispendik), dan informasi lengkap seputar sekolah kami.',
+            'Website resmi SMP Negeri 24 Padang (Spendupat), Kota Padang, Sumatera Barat. Jelajahi profil, prestasi, berita, galeri, bank sampah sekolah (Sispendig), dan informasi lengkap seputar sekolah kami.',
         images: [
             {
                 url: `${siteUrl}/opengraph-image`,

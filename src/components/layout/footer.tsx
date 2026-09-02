@@ -121,7 +121,7 @@ export default function Footer({ showMap = true, contactInfo }: FooterProps) {
                                 </svg>
                                 <span className="underline underline-offset-2 decoration-dotted hover:decoration-solid">
                                     Dikembangkan oleh Mahasiswa Magang Teknik Informatika UPI &quot;YPTK&quot; Padang
-                                    (Aira, Aldi, Ikhwan, Habib, Rafi)
+                                    (Ikhwan, Aira, Aldi, Habib, Rafi)
                                 </span>
                             </Link>
                         </div>
