@@ -246,10 +246,10 @@ export default function Header({ contactInfo }: HeaderProps) {
             {/* Main Acrylic Navbar Container */}
             <div
                 className={cn(
-                    'w-full border-b transition-all duration-300',
+                    'w-full border-b transition-[background-color,box-shadow,padding] duration-300 will-change-auto',
                     isScrolled
-                        ? 'bg-background/85 dark:bg-background/85 backdrop-blur-xl border-emerald-500/20 shadow-[0_8px_30px_rgb(0,0,0,0.08)] py-2'
-                        : 'bg-background/90 dark:bg-background/90 backdrop-blur-lg border-emerald-500/15 shadow-[0_4px_20px_-4px_rgba(16,185,129,0.08)] py-2.5'
+                        ? 'bg-background/90 dark:bg-background/90 backdrop-blur-md border-emerald-500/20 shadow-[0_4px_16px_rgb(0,0,0,0.06)] py-2'
+                        : 'bg-background/80 dark:bg-background/80 backdrop-blur-sm border-emerald-500/15 py-2.5'
                 )}
             >
                 <div className="container mx-auto flex items-center justify-between px-4">
@@ -332,19 +332,20 @@ export default function Header({ contactInfo }: HeaderProps) {
                                                 />
                                             </button>
 
-                                            {/* Safe Hover Bridge to prevent flicker */}
+                                            {/* Dropdown – GPU-composited, no layout-triggering props */}
                                             <AnimatePresence>
                                                 {isDropdownOpen && (
                                                     <motion.div
-                                                        initial={{ opacity: 0, y: 8, scale: 0.96 }}
-                                                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                                                        exit={{ opacity: 0, y: 6, scale: 0.96 }}
-                                                        transition={{ duration: 0.18, ease: 'easeOut' }}
-                                                        className="absolute left-0 top-full pt-2 z-50 min-w-[280px]"
+                                                        initial={{ opacity: 0, y: 6 }}
+                                                        animate={{ opacity: 1, y: 0 }}
+                                                        exit={{ opacity: 0, y: 4 }}
+                                                        transition={{ duration: 0.14, ease: [0.4, 0, 0.2, 1] }}
+                                                        style={{ willChange: 'opacity, transform' }}
+                                                        className="absolute left-0 top-full pt-2 z-50 min-w-[280px] transform-gpu"
                                                         onMouseEnter={() => handleMouseEnter(link.href)}
                                                         onMouseLeave={handleMouseLeave}
                                                     >
-                                                        <div className="rounded-2xl border border-emerald-500/25 bg-popover/95 dark:bg-popover/95 p-2 shadow-2xl backdrop-blur-2xl ring-1 ring-black/5">
+                                                        <div className="rounded-2xl border border-emerald-500/25 bg-background p-2 shadow-2xl ring-1 ring-border/50">
                                                             <div className="flex flex-col gap-1">
                                                                 {link.subLinks.map((subLink) => {
                                                                     const isSubActive = pathname === subLink.href;
@@ -354,18 +355,18 @@ export default function Header({ contactInfo }: HeaderProps) {
                                                                             key={subLink.href}
                                                                             href={subLink.href}
                                                                             className={cn(
-                                                                                'group flex items-start gap-3 rounded-xl p-2.5 text-xs transition-all duration-200',
+                                                                                'group flex items-start gap-3 rounded-xl p-2.5 text-xs transition-[background-color,border-color] duration-150',
                                                                                 isSubActive
                                                                                     ? 'bg-emerald-500/15 border border-emerald-500/30 text-emerald-900 dark:text-emerald-100'
-                                                                                    : 'hover:bg-emerald-500/10 hover:border-emerald-500/20 text-foreground'
+                                                                                    : 'hover:bg-emerald-500/10 text-foreground'
                                                                             )}
                                                                         >
                                                                             <div
                                                                                 className={cn(
-                                                                                    'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border transition-colors',
+                                                                                    'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border',
                                                                                     isSubActive
                                                                                         ? 'border-emerald-500/40 bg-emerald-500/20 text-emerald-700 dark:text-emerald-300'
-                                                                                        : 'border-emerald-500/15 bg-emerald-500/5 text-emerald-600 dark:text-emerald-400 group-hover:bg-emerald-500/20 group-hover:border-emerald-500/30'
+                                                                                        : 'border-emerald-500/15 bg-emerald-500/5 text-emerald-600 dark:text-emerald-400 group-hover:bg-emerald-500/15'
                                                                                 )}
                                                                             >
                                                                                 <SubIcon className="h-4 w-4" />
