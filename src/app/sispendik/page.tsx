@@ -1,43 +1,45 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Recycle } from "lucide-react";
+import { BarChart3, BookOpen, FileImage, Recycle } from "lucide-react";
 import Tab1_SispendikDashboard from "./tab-1-sispendik-dashboard";
 import Tab2_Articles from "./tab-2-articles";
 import Tab3_Documentation from "./tab-3-documentation";
 
 export default function SispendikPage() {
   return (
-    <div className="container mx-auto py-6">
-      <div className="space-y-4 text-center print:hidden">
+    <div className="container mx-auto px-3 py-4 sm:px-4 sm:py-6 max-w-7xl">
+      <div className="space-y-1.5 text-center print:hidden">
         <div className="flex items-center justify-center gap-2">
-          <Recycle className="h-8 w-8 text-green-600" />
-          <h2 className="text-3xl font-bold tracking-tight">
-            Sispendig SMPN 24 Padang
-          </h2>
+          <Recycle className="h-6 w-6 text-emerald-600 sm:h-7 sm:w-7" />
+          <h1 className="text-xl font-bold tracking-tight sm:text-2xl lg:text-3xl">
+            Sispendik SMPN 24 Padang
+          </h1>
         </div>
-        <p className="text-muted-foreground">
-          Pantau data sampah, lihat edukasi seputar sampah, dan jelajahi
-          dokumentasi kegiatan.
+        <p className="text-xs sm:text-sm text-muted-foreground max-w-2xl mx-auto">
+          Pantau rekapitulasi setoran sampah, edukasi lingkungan, dan dokumentasi kegiatan.
         </p>
       </div>
 
-      <Tabs defaultValue="news" className="w-full mt-6">
-        <TabsList className="grid w-full grid-cols-3 bg-muted p-0 border-b print:hidden">
+      <Tabs defaultValue="dashboard" className="mt-4 w-full">
+        <TabsList className="mx-auto grid h-auto w-full max-w-2xl grid-cols-3 gap-1 rounded-full bg-muted/70 p-1 print:hidden sm:gap-2">
           <TabsTrigger
             value="news"
-            className="font-bold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-none"
+            className="min-h-11 gap-1 rounded-full px-2 text-xs font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground sm:gap-2 sm:px-4 sm:text-sm"
           >
+            <BookOpen className="h-4 w-4" />
             Edukasi
           </TabsTrigger>
           <TabsTrigger
             value="documentation"
-            className="font-bold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-none"
+            className="min-h-11 gap-1 rounded-full px-2 text-xs font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground sm:gap-2 sm:px-4 sm:text-sm"
           >
+            <FileImage className="h-4 w-4" />
             Dokumentasi
           </TabsTrigger>
           <TabsTrigger
             value="dashboard"
-            className="font-bold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-none"
+            className="min-h-11 gap-1 rounded-full px-2 text-xs font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground sm:gap-2 sm:px-4 sm:text-sm"
           >
+            <BarChart3 className="h-4 w-4" />
             Rekapitulasi Setoran
           </TabsTrigger>
         </TabsList>
