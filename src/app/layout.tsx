@@ -8,6 +8,7 @@ import AOSInit from '@/components/aos-init';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import NextAuthSessionProvider from '@/components/session-provider';
 import BackToTopButton from '@/components/ui/back-to-top-button';
+import { getContactInfo } from '@/lib/data/contact';
 
 const roboto = Roboto({
     subsets: ['latin'],
@@ -29,24 +30,61 @@ const siteUrl =
 export const viewport: Viewport = {
     width: 'device-width',
     initialScale: 1,
+    themeColor: [
+        { media: '(prefers-color-scheme: light)', color: '#047857' },
+        { media: '(prefers-color-scheme: dark)', color: '#0b0f17' },
+    ],
 };
 
 export const metadata: Metadata = {
     metadataBase: new URL(siteUrl),
     title: {
-        default: 'SMPN 24 Padang',
-        template: '%s | SMPN 24 Padang',
+        default: 'SMP Negeri 24 Padang | Website Resmi Sekolah',
+        template: '%s | SMP Negeri 24 Padang',
     },
     description:
-        'Website resmi SMPN 24 Padang. Jelajahi profil, berita, prestasi, galeri, dan informasi lengkap seputar sekolah kami.',
+        'Website resmi SMP Negeri 24 Padang (Spendupat), Kota Padang, Sumatera Barat. Informasi lengkap profil sekolah, PPDB, prestasi siswa, berita terkini, program kurikulum, bank sampah sekolah (Sispendik), dan kegiatan kesiswaan.',
     keywords: [
+        // Nama Sekolah & Brand
+        'SMP Negeri 24 Padang',
         'SMPN 24 Padang',
-        'Sekolah Menengah Pertama',
-        'Padang',
-        'Pendidikan',
+        'SMP 24 Padang',
+        'Spendupat',
+        'Spendupat Padang',
+        'Spendupat Juara',
+        // Wilayah & Geografis (Padang, Sumatera Barat)
+        'SMP di Kota Padang',
+        'SMP Negeri Terbaik di Padang',
+        'Sekolah Menengah Pertama Padang',
+        'Dinas Pendidikan Kota Padang',
+        'Pendidikan Padang Sumatera Barat',
+        'Sekolah di Sumatera Barat',
+        'SMP Lubuk Begalung Padang',
+        // Akademik & Program
+        'PPDB SMP 24 Padang',
+        'Prestasi SMPN 24 Padang',
+        'Ekstrakurikuler SMPN 24 Padang',
+        'Akreditasi SMPN 24 Padang',
+        'Sispendig SMP 24 Padang',
+        'Bank Sampah Sekolah Padang',
+        'Profil Guru SMP 24 Padang',
+        'Kurikulum Merdeka SMP Padang',
     ],
-    authors: [{ name: 'SMPN 24 Padang', url: siteUrl }],
-    creator: 'SMPN 24 Padang',
+    authors: [{ name: 'SMP Negeri 24 Padang', url: siteUrl }],
+    creator: 'SMP Negeri 24 Padang',
+    publisher: 'SMP Negeri 24 Padang',
+    category: 'Education',
+    applicationName: 'Website SMP Negeri 24 Padang',
+    generator: 'Next.js',
+    referrer: 'origin-when-cross-origin',
+    formatDetection: {
+        email: false,
+        address: false,
+        telephone: false,
+    },
+    alternates: {
+        canonical: '/',
+    },
     icons: {
         icon: [
             { url: '/favicon.ico', sizes: 'any', type: 'image/x-icon' },
@@ -66,71 +104,101 @@ export const metadata: Metadata = {
         locale: 'id_ID',
         url: siteUrl,
         siteName: 'SMP Negeri 24 Padang',
-        title: 'SMPN 24 Padang',
+        title: 'SMP Negeri 24 Padang | Membina Pikiran, Membentuk Masa Depan',
         description:
-            'Website resmi SMPN 24 Padang. Jelajahi profil, berita, prestasi, galeri, dan informasi lengkap seputar sekolah kami.',
+            'Website resmi SMP Negeri 24 Padang (Spendupat), Kota Padang, Sumatera Barat. Jelajahi profil, prestasi, berita, galeri, bank sampah sekolah (Sispendik), dan informasi lengkap seputar sekolah kami.',
         images: [
             {
-                url: `${siteUrl}/1200.png`,
+                url: `${siteUrl}/opengraph-image`,
                 width: 1200,
                 height: 630,
-                alt: 'Logo SMPN 24 Padang',
+                alt: 'Logo dan Identitas Resmi SMP Negeri 24 Padang',
+                type: 'image/png',
             },
         ],
     },
     twitter: {
         card: 'summary_large_image',
-        title: 'SMPN 24 Padang',
+        title: 'SMP Negeri 24 Padang | Website Resmi',
         description:
-            'Website resmi SMPN 24 Padang. Jelajahi profil, berita, prestasi, galeri, dan informasi lengkap seputar sekolah kami.',
-        images: [`${siteUrl}/1200.png`],
-        creator: '@smpn24padang', // Ganti dengan handle Twitter jika ada
+            'Website resmi SMP Negeri 24 Padang, Kota Padang, Sumatera Barat. Membina Pikiran, Membentuk Masa Depan.',
+        images: [`${siteUrl}/opengraph-image`],
+        creator: '@smp24padang',
+    },
+    robots: {
+        index: true,
+        follow: true,
+        googleBot: {
+            index: true,
+            follow: true,
+            'max-video-preview': -1,
+            'max-image-preview': 'large',
+            'max-snippet': -1,
+        },
     },
     verification: {
         google: ['IC4fbcspLvv_VgDWKukeriJmjSSYmUO246NoRlUXDAw'],
     },
+    other: {
+        'geo.region': 'ID-SB',
+        'geo.placename': 'Padang',
+        'geo.position': '-0.9471;100.4172',
+        'ICBM': '-0.9471, 100.4172',
+    },
 };
-
-import { getContactInfo } from '@/lib/data/contact';
 
 export default async function RootLayout({
     children,
 }: Readonly<{
     children: React.ReactNode;
 }>) {
+    const contactInfo = await getContactInfo();
+
     const jsonLd = {
         '@context': 'https://schema.org',
         '@type': 'EducationalOrganization',
-        name: 'SMPN 24 Padang',
+        name: 'SMP Negeri 24 Padang',
+        alternateName: ['SMPN 24 Padang', 'SMP 24 Padang', 'Spendupat'],
         url: siteUrl,
         logo: `${siteUrl}/logo.png`,
-        contactPoint: {
-            '@type': 'ContactPoint',
-            telephone: '+62-XXX-XXXX-XXXX', // Ganti dengan nomor telepon sekolah
-            contactType: 'Customer Service',
-        },
+        image: `${siteUrl}/opengraph-image`,
+        description:
+            'Sekolah Menengah Pertama Negeri 24 Padang, institusi pendidikan unggul, cerdas, berkarakter, dan berprestasi di Kota Padang, Sumatera Barat.',
+        telephone: contactInfo?.phone || '+62-751-XXXXXX',
+        email: contactInfo?.email || 'info@smpn24padang.sch.id',
         address: {
             '@type': 'PostalAddress',
-            streetAddress: 'Jalan Raya Padang', // Ganti dengan alamat sekolah
+            streetAddress:
+                contactInfo?.address ||
+                'Jalan Raya Padang, Kota Padang',
             addressLocality: 'Padang',
             addressRegion: 'Sumatera Barat',
-            postalCode: '25000', // Ganti dengan kode pos
+            postalCode: '25000',
             addressCountry: 'ID',
         },
-        potentialAction: {
-            '@type': 'SearchAction',
-            target: {
-                '@type': 'EntryPoint',
-                urlTemplate: `${siteUrl}/search?q={search_term_string}`,
-            },
-            'query-input': 'required name=search_term_string',
+        geo: {
+            '@type': 'GeoCoordinates',
+            latitude: -0.9471,
+            longitude: 100.4172,
+        },
+        sameAs: [
+            'https://www.instagram.com/smp24padang',
+            'https://youtube.com/@ssk_spendupat',
+        ],
+        areaServed: {
+            '@type': 'City',
+            name: 'Padang',
         },
     };
 
-    const contactInfo = await getContactInfo();
-
     return (
         <html lang="id" className="!scroll-smooth" suppressHydrationWarning>
+            <head>
+                <meta name="geo.region" content="ID-SB" />
+                <meta name="geo.placename" content="Padang" />
+                <meta name="geo.position" content="-0.9471;100.4172" />
+                <meta name="ICBM" content="-0.9471, 100.4172" />
+            </head>
             <body
                 className={`${roboto.variable} ${montserrat.variable} font-body antialiased overflow-x-hidden`}
             >
