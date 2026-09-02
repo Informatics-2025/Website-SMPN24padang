@@ -170,7 +170,7 @@ export default function AccreditationAdminPage() {
                 <div className="flex items-center justify-between">
                     <div>
                         <CardTitle className="text-2xl font-bold">
-                            Kelola Sertifikasi & Penghargaan
+                            Kelola Sertifikasi Akreditasi
                         </CardTitle>
                         <CardDescription className="mt-2 text-lg">
                             Tambah, edit, atau hapus dokumen sertifikasi &

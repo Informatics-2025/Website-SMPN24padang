@@ -11,12 +11,14 @@ export default function SispendikPage() {
         <div className="flex items-center justify-center gap-2">
           <Recycle className="h-6 w-6 text-emerald-600 sm:h-7 sm:w-7" />
           <h1 className="text-xl font-bold tracking-tight sm:text-2xl lg:text-3xl">
-            Sispendik SMPN 24 Padang
+            Sispendig SMPN 24 Padang
           </h1>
         </div>
         <p className="text-xs sm:text-sm text-muted-foreground max-w-2xl mx-auto">
+          Sistem Pengelolaan Sampah Digital
+          <br/>
           Pantau rekapitulasi setoran sampah, edukasi lingkungan, dan dokumentasi kegiatan.
-        </p>
+          </p>
       </div>
 
       <Tabs defaultValue="dashboard" className="mt-4 w-full">

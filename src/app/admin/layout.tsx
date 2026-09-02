@@ -98,7 +98,7 @@ export default function AdminLayout({
                 },
                 {
                     href: '/admin/accreditation',
-                    label: 'Sertifikasi & Penghargaan',
+                    label: 'Sertifikasi Akreditasi',
                     icon: Award,
                 },
                 {

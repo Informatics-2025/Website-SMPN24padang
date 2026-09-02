@@ -65,7 +65,7 @@ const menuItems = [
     },
     {
         href: '/admin/accreditation',
-        label: 'Sertifikasi & Penghargaan',
+        label: 'Sertifikasi Akreditasi',
         icon: Award,
         description: 'Tampilkan semua sertifikasi dan penghargaan.',
     },

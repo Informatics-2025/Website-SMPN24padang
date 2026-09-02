@@ -36,7 +36,7 @@ export default async function AccreditationPage() {
         <div className="container mx-auto max-w-5xl px-4 py-12 md:py-24">
             <div className="text-center">
                 <h1 className="font-headline text-4xl font-bold text-primary md:text-5xl">
-                    Sertifikasi & Penghargaan
+                    Sertifikasi Akreditasi
                 </h1>
                 <p className="mx-auto mt-4 max-w-2xl text-lg text-muted-foreground">
                     Komitmen kami terhadap keunggulan yang diakui secara resmi.
