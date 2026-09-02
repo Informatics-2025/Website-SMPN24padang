@@ -1,23 +1,35 @@
-import { db } from '@/lib/db';
-import { news } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
-import { notFound } from 'next/navigation';
-import Image from 'next/image';
-import { InteractionSection } from '@/components/interactions/InteractionSection';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
+import { InteractionSection } from "@/components/interactions/interaction-section";
+import { Button } from "@/components/ui/button";
+import { db } from "@/lib/db";
+import { news } from "@/lib/db/schema";
+import { eq } from "drizzle-orm";
+import { ArrowLeft } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { unstable_cache } from "next/cache";
 
+export const revalidate = 120;
 
-export default async function NewsArticlePage({ params }: { params: { id: string } }) {
+const getNewsArticle = unstable_cache(
+  async (id: string) => db.query.news.findFirst({ where: eq(news.id, id) }),
+  ["public-news-article"],
+  { revalidate: 120, tags: ["news-collection"] },
+);
+
+export async function generateStaticParams() {
+  const articles = await db.select({ id: news.id }).from(news);
+  return articles.map(({ id }) => ({ id }));
+}
+
+export default async function NewsArticlePage({
+  params,
+}: {
+  params: { id: string };
+}) {
   const articleId = params.id;
 
-  const articleData = await db.query.news.findFirst({
-    where: eq(news.id, articleId),
-    with: {
-      
-    },
-  });
+  const articleData = await getNewsArticle(articleId);
 
   if (!articleData) {
     notFound();
@@ -37,11 +49,12 @@ export default async function NewsArticlePage({ params }: { params: { id: string
             {articleData.title}
           </h1>
           <p className="mt-2 text-muted-foreground">
-            Dipublikasikan pada {new Date(articleData.date).toLocaleDateString('id-ID', {
-              weekday: 'long',
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric',
+            Dipublikasikan pada{" "}
+            {new Date(articleData.date).toLocaleDateString("id-ID", {
+              weekday: "long",
+              year: "numeric",
+              month: "long",
+              day: "numeric",
             })}
           </p>
         </header>
@@ -57,19 +70,15 @@ export default async function NewsArticlePage({ params }: { params: { id: string
           </div>
         )}
 
-        
-
-        <div
-          className="prose prose-lg max-w-none dark:prose-invert whitespace-pre-wrap"
-        >
+        <div className="prose prose-lg max-w-none dark:prose-invert whitespace-pre-wrap">
           {articleData.description}
         </div>
       </article>
 
-      <InteractionSection 
-        contentType="news" 
-        contentId={articleData.id} 
-        pathname={`/news/${articleData.id}`} 
+      <InteractionSection
+        contentType="news"
+        contentId={articleData.id}
+        pathname={`/news/${articleData.id}`}
       />
     </main>
   );

@@ -1,17 +1,24 @@
-import { fetchComments, countLikes, hasLiked } from '@/lib/actions/interactions';
-import { CommentForm } from './CommentForm';
-import { LikeButton } from './LikeButton';
-import { CommentsList } from './CommentsList';
-import { auth } from '@/lib/auth';
-import { headers } from 'next/headers';
+import {
+  countLikes,
+  fetchComments,
+  hasLiked,
+} from "@/lib/actions/interactions";
+import { auth } from "@/lib/auth";
+import { CommentForm } from "./comment-form";
+import { CommentsList } from "./comments-list";
+import { LikeButton } from "./like-button";
 
 interface InteractionSectionProps {
-  contentType: 'news' | 'waste_news';
+  contentType: "news" | "waste_news";
   contentId: string;
   pathname: string;
 }
 
-export async function InteractionSection({ contentType, contentId, pathname }: InteractionSectionProps) {
+export async function InteractionSection({
+  contentType,
+  contentId,
+  pathname,
+}: InteractionSectionProps) {
   const session = await auth();
   // For anonymous users, we need a stable ID. We can use a cookie or a fingerprint.
   // For simplicity, we'll rely on a client-side generated ID for now.
@@ -20,7 +27,9 @@ export async function InteractionSection({ contentType, contentId, pathname }: I
   const [comments, likeCount, userHasLiked] = await Promise.all([
     fetchComments(contentType, contentId),
     countLikes(contentType, contentId),
-    session?.user ? hasLiked(contentType, contentId, null) : Promise.resolve(false),
+    session?.user
+      ? hasLiked(contentType, contentId, null)
+      : Promise.resolve(false),
   ]);
 
   return (
@@ -39,11 +48,11 @@ export async function InteractionSection({ contentType, contentId, pathname }: I
       <hr className="my-6" />
       <div>
         <h3 className="text-xl font-bold mb-4">Comments ({comments.length})</h3>
-        <CommentForm 
-          contentType={contentType} 
-          contentId={contentId} 
-          pathname={pathname} 
-          isUserLoggedIn={!!session?.user} 
+        <CommentForm
+          contentType={contentType}
+          contentId={contentId}
+          pathname={pathname}
+          isUserLoggedIn={!!session?.user}
         />
         <CommentsList comments={comments} />
       </div>
