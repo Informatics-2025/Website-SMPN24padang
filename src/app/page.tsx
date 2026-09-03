@@ -2,6 +2,7 @@
 import { ClientCarousel } from "@/components/client-carousel";
 import Facilities from "@/components/facilities";
 import FaqAccordion from "@/components/faq/faq-accordion";
+import { MobileQuickNav } from "@/components/home/mobile-quick-nav";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -384,10 +385,12 @@ export default async function Home() {
         <Marquee items={marqueeItems} />
       </section>
 
+      <MobileQuickNav />
+
       {/* Welcome from Principal */}
-      <section className="bg-background py-16 md:py-24">
-        <div className="container mx-auto flex flex-col items-center gap-12 px-4 md:flex-row md:gap-16">
-          <div className="relative w-56 flex-shrink-0 h-72 overflow-hidden rounded-lg shadow-xl md:w-80 md:h-96">
+      <section className="bg-background py-10 md:py-24">
+        <div className="container mx-auto flex flex-col items-center gap-7 px-4 md:flex-row md:gap-16">
+          <div className="relative h-52 w-40 flex-shrink-0 overflow-hidden rounded-lg shadow-lg md:h-96 md:w-80 md:shadow-xl">
             <Image
               src={
                 profile?.principalImageUrl ?? "https://placehold.co/600x800.png"
@@ -398,19 +401,21 @@ export default async function Home() {
               className="object-cover object-top transition-transform duration-500 hover:scale-110"
             />
           </div>
-          <div className="md:text-left">
-            <p className="font-semibold text-primary">Sambutan Hangat</p>
-            <h2 className="mt-1 font-headline text-2xl font-bold text-foreground md:text-3xl">
+          <div className="w-full md:text-left">
+            <p className="text-sm font-semibold text-primary md:text-base">
+              Sambutan Hangat
+            </p>
+            <h2 className="mt-1 font-headline text-xl font-bold leading-snug text-foreground md:text-3xl">
               Dari Kepala Sekolah SMPN 24 Padang
             </h2>
-            <div className="mt-4 inline-flex items-center gap-3 rounded-lg bg-green-100 p-3 dark:bg-green-900/30">
-              <ShieldCheck className="h-6 w-6 flex-shrink-0 text-green-600 dark:text-green-400" />
-              <p className="text-sm font-semibold text-green-800 dark:text-green-200">
+            <div className="mt-4 inline-flex max-w-full items-center gap-2 rounded-lg bg-green-100 p-2.5 dark:bg-green-900/30 md:gap-3 md:p-3">
+              <ShieldCheck className="h-5 w-5 flex-shrink-0 text-green-600 dark:text-green-400 md:h-6 md:w-6" />
+              <p className="text-xs font-semibold leading-snug text-green-800 dark:text-green-200 md:text-sm">
                 Terakreditasi A - Adiwiyata Mandiri Nasional
               </p>
             </div>
             <div
-              className="prose prose-lg mt-4 max-w-none text-muted-foreground line-clamp-6"
+              className="prose prose-sm mt-4 max-w-none text-muted-foreground line-clamp-5 md:prose-lg md:line-clamp-6"
               dangerouslySetInnerHTML={{
                 __html: profile?.principalWelcome ?? "",
               }}

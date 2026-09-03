@@ -36,42 +36,48 @@ export default async function ProfilePage() {
         </p>
       </div>
 
-      <section className="mt-16">
-        <Card>
+      <section className="mt-10 md:mt-16">
+        <Card className="overflow-hidden">
           <div className="p-4 sm:p-6 md:p-8">
-            <h2 className="font-headline text-3xl font-bold text-primary mb-4 text-center">
+            <h2 className="mb-6 text-center font-headline text-2xl font-bold text-primary md:mb-8 md:text-3xl">
               Sambutan dari Kepala Sekolah
             </h2>
-            <div className="float-left mr-6 w-full md:w-auto max-w-[350px]">
-              <Image
-                src={
-                  profile?.principalImageUrl ||
-                  "https://placehold.co/350x466.png"
-                }
-                alt="Principal"
-                width={350}
-                height={466}
-                className="transition-transform duration-300 hover:scale-105 shadow-md"
-              />
-            </div>
-            <div
-              className="space-y-4 text-foreground/80 text-justify leading-relaxed"
-              dangerouslySetInnerHTML={{
-                __html:
-                  profile?.principalWelcome?.replace(/\n/g, "<br />") || "",
-              }}
-            ></div>
-            <div className="flex justify-end mt-6">
-              <div className="text-right">
-                <p className="font-semibold text-primary">
-                  {profile?.principalName}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  Kepala Sekolah SMPN 24 Padang
-                </p>
+
+            <div className="flex flex-col gap-6 md:flex-row md:items-start md:gap-8">
+              <div className="mx-auto w-44 shrink-0 overflow-hidden rounded-lg bg-muted shadow-md sm:w-52 md:mx-0 md:w-[300px] lg:w-[350px]">
+                <Image
+                  src={
+                    profile?.principalImageUrl ||
+                    "https://placehold.co/350x466.png"
+                  }
+                  alt="Kepala Sekolah SMPN 24 Padang"
+                  width={350}
+                  height={466}
+                  className="aspect-[3/4] h-auto w-full object-cover object-top transition-transform duration-300 hover:scale-105"
+                />
+              </div>
+
+              <div className="min-w-0 flex-1">
+                <div
+                  className="space-y-4 text-left text-[15px] leading-7 text-foreground/80 md:text-base md:leading-relaxed [&_h1]:font-headline [&_h1]:text-xl [&_h1]:font-bold [&_h1]:leading-snug [&_h1]:text-foreground [&_h2]:font-headline [&_h2]:text-xl [&_h2]:font-bold [&_h2]:leading-snug [&_h2]:text-foreground [&_h3]:font-headline [&_h3]:text-lg [&_h3]:font-bold [&_h3]:leading-snug [&_h3]:text-foreground [&_h4]:font-headline [&_h4]:text-lg [&_h4]:font-bold [&_h4]:leading-snug [&_h4]:text-foreground [&_strong]:font-bold [&_strong]:text-foreground"
+                  dangerouslySetInnerHTML={{
+                    __html:
+                      profile?.principalWelcome?.replace(/\n/g, "<br />") ||
+                      "",
+                  }}
+                ></div>
+                <div className="mt-6 flex justify-start md:justify-end">
+                  <div className="text-left md:text-right">
+                    <p className="font-semibold text-primary">
+                      {profile?.principalName}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      Kepala Sekolah SMPN 24 Padang
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
-            <div className="clear-both"></div>
           </div>
         </Card>
       </section>
@@ -87,9 +93,9 @@ export default async function ProfilePage() {
         </div>
         <div className="mt-12">
           <Card>
-            <CardContent className="p-8 text-foreground/80">
+            <CardContent className="p-5 text-foreground/80 md:p-8">
               <div
-                className="space-y-4 text-justify leading-relaxed"
+                className="space-y-4 text-left text-[15px] leading-7 md:text-base md:leading-relaxed"
                 dangerouslySetInnerHTML={{
                   __html: profile?.history?.replace(/\n/g, "<br />") || "",
                 }}

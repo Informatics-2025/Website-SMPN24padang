@@ -55,8 +55,7 @@ export function ClientCarousel({ banners }: ClientCarouselProps) {
 
     return (
         <div
-            className="relative w-full overflow-hidden group"
-            style={{ aspectRatio: '21/8' }}
+            className="relative h-[184px] w-full overflow-hidden group sm:h-[240px] md:h-auto md:aspect-[21/8]"
             onMouseEnter={() => { isPausedRef.current = true; if (timerRef.current) clearTimeout(timerRef.current); }}
             onMouseLeave={() => { isPausedRef.current = false; resetTimer(); }}
         >
@@ -101,14 +100,14 @@ export function ClientCarousel({ banners }: ClientCarouselProps) {
 
             {/* Text - separate composite layer */}
             <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-white px-4 sm:px-6 lg:px-8 pointer-events-none" style={{ zIndex: 20 }}>
-                <span className="inline-block px-3 py-1 mb-3 text-[10px] sm:text-xs font-semibold tracking-wider text-emerald-300 uppercase bg-emerald-950/60 rounded-full border border-emerald-500/30 shadow-sm">
+                <span className="mb-2 inline-block rounded-full border border-emerald-500/30 bg-emerald-950/60 px-2.5 py-1 text-[9px] font-semibold uppercase tracking-wide text-emerald-300 shadow-sm sm:mb-3 sm:px-3 sm:text-xs">
                     SMP Negeri 24 Padang
                 </span>
-                <h2 className="font-headline text-xl sm:text-4xl lg:text-6xl font-bold tracking-tight text-white drop-shadow-md">
+                <h2 className="max-w-[22rem] font-headline text-lg font-bold leading-tight tracking-tight text-white drop-shadow-md line-clamp-2 sm:max-w-2xl sm:text-4xl lg:text-6xl">
                     {banners[index].title}
                 </h2>
                 {banners[index].description && (
-                    <p className="mt-2 sm:mt-3 max-w-2xl text-xs sm:text-base lg:text-lg text-white/90 drop-shadow-sm font-normal line-clamp-2 sm:line-clamp-3">
+                    <p className="mt-1.5 max-w-[19rem] text-[11px] font-normal leading-snug text-white/90 drop-shadow-sm line-clamp-2 sm:mt-3 sm:max-w-2xl sm:text-base sm:line-clamp-3 lg:text-lg">
                         {banners[index].description}
                     </p>
                 )}
@@ -137,7 +136,7 @@ export function ClientCarousel({ banners }: ClientCarouselProps) {
                     </button>
 
                     {/* Dot indicators */}
-                    <div className="absolute bottom-3 sm:bottom-5 left-0 right-0 flex items-center justify-center gap-2" style={{ zIndex: 30 }}>
+                    <div className="absolute bottom-2.5 left-0 right-0 flex items-center justify-center gap-1.5 sm:bottom-5 sm:gap-2" style={{ zIndex: 30 }}>
                         {banners.map((_, idx) => (
                             <button
                                 key={idx}
@@ -147,7 +146,7 @@ export function ClientCarousel({ banners }: ClientCarouselProps) {
                                 className={cn(
                                     'h-1.5 rounded-full transition-[width,background-color] duration-300',
                                     index === idx
-                                        ? 'w-6 sm:w-8 bg-emerald-400 shadow-sm shadow-emerald-400/50'
+                                        ? 'w-5 sm:w-8 bg-emerald-400 shadow-sm shadow-emerald-400/50'
                                         : 'w-1.5 bg-white/50 hover:bg-white/80'
                                 )}
                             />
