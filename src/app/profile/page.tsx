@@ -8,6 +8,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import type { Metadata } from "next";
+import { ShieldCheck } from "lucide-react";
 import Image from "next/image";
 
 import { getPastPrincipals, getProfile } from "../actions";
@@ -43,18 +44,36 @@ export default async function ProfilePage() {
               Sambutan dari Kepala Sekolah
             </h2>
 
-            <div className="flex flex-col gap-6 md:flex-row md:items-start md:gap-8">
-              <div className="mx-auto w-44 shrink-0 overflow-hidden rounded-lg bg-muted shadow-md sm:w-52 md:mx-0 md:w-[300px] lg:w-[350px]">
-                <Image
-                  src={
-                    profile?.principalImageUrl ||
-                    "https://placehold.co/350x466.png"
-                  }
-                  alt="Kepala Sekolah SMPN 24 Padang"
-                  width={350}
-                  height={466}
-                  className="aspect-[3/4] h-auto w-full object-cover object-top transition-transform duration-300 hover:scale-105"
-                />
+            <div className="grid gap-6 md:grid-cols-[300px_minmax(0,1fr)] md:items-start md:gap-8 lg:grid-cols-[350px_minmax(0,1fr)]">
+              <div className="mx-auto w-40 overflow-hidden rounded-lg bg-transparent shadow-md sm:w-48 md:mx-0 md:w-full md:border md:border-emerald-500/15 md:bg-emerald-500/5">
+                <div className="overflow-hidden rounded-lg bg-muted md:rounded-none">
+                  <Image
+                    src={
+                      profile?.principalImageUrl ||
+                      "https://placehold.co/350x466.png"
+                    }
+                    alt="Kepala Sekolah SMPN 24 Padang"
+                    width={350}
+                    height={466}
+                    className="aspect-[3/4] h-auto w-full object-cover object-top transition-transform duration-300 hover:scale-105"
+                  />
+                </div>
+                <div className="hidden space-y-3 p-4 text-center md:block md:p-5">
+                  <div>
+                    <p className="font-headline text-base font-bold leading-snug text-foreground md:text-lg">
+                      {profile?.principalName}
+                    </p>
+                    <p className="mt-1 text-xs font-medium text-muted-foreground md:text-sm">
+                      Kepala Sekolah SMPN 24 Padang
+                    </p>
+                  </div>
+                  <div className="inline-flex items-center gap-2 rounded-lg bg-green-100 px-3 py-2 text-left dark:bg-green-900/30">
+                    <ShieldCheck className="h-4 w-4 shrink-0 text-green-600 dark:text-green-400" />
+                    <span className="text-xs font-semibold leading-snug text-green-800 dark:text-green-200">
+                      Terakreditasi A - Adiwiyata Mandiri Nasional
+                    </span>
+                  </div>
+                </div>
               </div>
 
               <div className="min-w-0 flex-1">
@@ -66,16 +85,6 @@ export default async function ProfilePage() {
                       "",
                   }}
                 ></div>
-                <div className="mt-6 flex justify-start md:justify-end">
-                  <div className="text-left md:text-right">
-                    <p className="font-semibold text-primary">
-                      {profile?.principalName}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      Kepala Sekolah SMPN 24 Padang
-                    </p>
-                  </div>
-                </div>
               </div>
             </div>
           </div>
