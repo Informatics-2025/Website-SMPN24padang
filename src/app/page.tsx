@@ -170,12 +170,12 @@ async function LatestNews() {
   const latestNews = await getLatestNews();
   if (!latestNews || latestNews.length === 0) {
     return (
-      <section className="bg-primary/5 py-16 md:py-24">
+      <section className="bg-primary/5 py-10 sm:py-16 md:py-24">
         <div className="container mx-auto px-4 text-center">
-          <h2 className="font-headline text-3xl font-bold text-primary md:text-4xl">
+          <h2 className="font-headline text-2xl sm:text-3xl font-bold text-primary md:text-4xl">
             Berita Terbaru
           </h2>
-          <p className="mx-auto mt-2 max-w-2xl text-muted-foreground">
+          <p className="mx-auto mt-2 max-w-2xl text-sm sm:text-base text-muted-foreground">
             Saat ini belum ada berita terbaru. Silakan periksa kembali nanti.
           </p>
         </div>
@@ -184,62 +184,63 @@ async function LatestNews() {
   }
 
   return (
-    <section className="bg-primary/5 py-16 md:py-24">
+    <section className="bg-primary/5 py-10 sm:py-16 md:py-24">
       <div className="container mx-auto px-4">
         <div className="text-center">
-          <h2 className="font-headline text-3xl font-bold text-primary md:text-4xl">
+          <h2 className="font-headline text-2xl sm:text-3xl font-bold text-primary md:text-4xl">
             Berita Terkini
           </h2>
-          <p className="mx-auto mt-2 max-w-2xl text-muted-foreground">
+          <p className="mx-auto mt-2 max-w-2xl text-sm sm:text-base text-muted-foreground">
             Ikuti kegiatan dan prestasi terbaru dari lingkungan sekolah kami.
           </p>
         </div>
 
-        <div className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-8 sm:mt-12 grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-3">
           {latestNews.map((item) => (
             <Card
               key={item.id}
               className="flex flex-col overflow-hidden rounded-lg transition-shadow duration-300 hover:shadow-xl"
             >
-              <div className="relative w-full aspect-video">
-                <Link href={`/news/${item.id}`} className="absolute inset-0">
+              <div className="relative aspect-[16/10] sm:aspect-video w-full overflow-hidden">
+                <Link href={`/news/${item.id}`} className="block h-full w-full">
                   <Image
                     src={item.imageUrl ?? "https://placehold.co/400x400.png"}
                     alt={item.title}
                     fill
                     loading="lazy"
-                    className="object-cover"
+                    className="object-cover transition-transform duration-300 hover:scale-105"
+                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 50vw, 33vw"
                   />
                 </Link>
               </div>
-              <div className="flex flex-1 flex-col justify-between p-4">
+              <div className="flex flex-1 flex-col justify-between p-3 sm:p-5">
                 <div>
-                  <p className="mb-2 text-sm text-muted-foreground">
+                  <p className="mb-1 text-[11px] sm:text-xs md:text-sm text-muted-foreground">
                     {new Date(item.date).toLocaleDateString("id-ID", {
                       year: "numeric",
-                      month: "long",
+                      month: "short",
                       day: "numeric",
                     })}
                   </p>
-                  <CardTitle className="font-headline text-lg font-bold">
+                  <CardTitle className="font-headline text-xs sm:text-base md:text-lg lg:text-xl font-bold leading-snug">
                     <Link
                       href={`/news/${item.id}`}
-                      className="text-foreground hover:text-primary hover:underline"
+                      className="line-clamp-2 text-foreground hover:text-primary hover:underline"
                     >
                       {item.title}
                     </Link>
                   </CardTitle>
-                  <p className="mt-2 text-sm text-muted-foreground line-clamp-3">
+                  <p className="mt-1 sm:mt-2 text-xs sm:text-sm text-muted-foreground line-clamp-2 sm:line-clamp-3">
                     {item.description}
                   </p>
                 </div>
                 <Button
                   variant="link"
                   asChild
-                  className="mt-4 p-0 self-start text-primary hover:text-primary/80"
+                  className="mt-2 sm:mt-4 p-0 h-auto self-start text-xs sm:text-sm font-medium text-primary hover:text-primary/80"
                 >
                   <Link href={`/news/${item.id}`}>
-                    Baca Lebih Lanjut <ArrowRight className="ml-1 h-4 w-4" />
+                    Baca Lebih Lanjut <ArrowRight className="ml-1 h-3 w-3 sm:h-4 sm:w-4" />
                   </Link>
                 </Button>
               </div>

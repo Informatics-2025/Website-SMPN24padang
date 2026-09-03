@@ -37,18 +37,18 @@ export default async function NewsArticlePage({
 
   return (
     <main className="container mx-auto max-w-4xl px-4 py-8">
-      <Link href="/news" className="mb-6 inline-block">
-        <Button variant="outline">
-          <ArrowLeft className="mr-2 h-4 w-4" />
+      <Link href="/news" className="mb-4 sm:mb-6 inline-block">
+        <Button variant="outline" size="sm" className="text-xs sm:text-sm sm:h-10 sm:px-4 sm:py-2">
+          <ArrowLeft className="mr-1.5 h-3.5 w-3.5 sm:mr-2 sm:h-4 sm:w-4" />
           Kembali ke Berita
         </Button>
       </Link>
       <article>
-        <header className="mb-8">
-          <h1 className="text-3xl font-bold leading-tight tracking-tighter md:text-4xl">
+        <header className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold leading-snug sm:leading-tight tracking-tight">
             {articleData.title}
           </h1>
-          <p className="mt-2 text-muted-foreground">
+          <p className="mt-2 text-xs sm:text-sm text-muted-foreground">
             Dipublikasikan pada{" "}
             {new Date(articleData.date).toLocaleDateString("id-ID", {
               weekday: "long",
