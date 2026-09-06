@@ -51,11 +51,6 @@ export function AdaptiveBreadcrumb({
     return (pathname || "").split("/").filter(Boolean);
   }, [pathname]);
 
-  // Jika berada di root/beranda dan hideOnHome bernilai true
-  if (segments.length === 0 && hideOnHome) {
-    return null;
-  }
-
   // Susun data item breadcrumb
   const items = React.useMemo(() => {
     let accumulatedPath = "";
@@ -72,6 +67,11 @@ export function AdaptiveBreadcrumb({
       };
     });
   }, [segments, labels]);
+
+  // Jika berada di root/beranda dan hideOnHome bernilai true
+  if (segments.length === 0 && hideOnHome) {
+    return null;
+  }
 
   // Segmen perantara (semua sebelum halaman aktif)
   const middleItems = items.slice(0, -1);
