@@ -10,6 +10,7 @@ const nextConfig = {
     // Opsi 'ignore...' diubah menjadi false untuk menampilkan error saat build,
     // ini adalah langkah penting untuk menjaga kualitas kode dan stabilitas produksi.
     reactStrictMode: true,
+    poweredByHeader: false, // Menghilangkan header x-powered-by: Next.js untuk mencegah fingerprinting teknologi
     typescript: {
         ignoreBuildErrors: false,
     },
@@ -59,14 +60,34 @@ const nextConfig = {
     async headers() {
         return [
             {
+                // OWASP Standard Security Headers untuk seluruh rute
+                source: '/:path*',
+                headers: [
+                    {
+                        key: 'X-Frame-Options',
+                        value: 'SAMEORIGIN',
+                    },
+                    {
+                        key: 'X-Content-Type-Options',
+                        value: 'nosniff',
+                    },
+                    {
+                        key: 'Referrer-Policy',
+                        value: 'strict-origin-when-cross-origin',
+                    },
+                    {
+                        key: 'X-XSS-Protection',
+                        value: '1; mode=block',
+                    },
+                ],
+            },
+            {
                 source: '/:all*(svg|jpg|jpeg|png|gif|ico|webp)',
                 locale: false,
                 headers: [
                     {
                         key: 'Cache-Control',
                         // Durasi cache 1 bulan (dalam detik) dengan validasi ulang.
-                        // Keseimbangan yang baik untuk CMS di mana aset bisa berubah.
-                        // Browser akan memeriksa versi baru setelah 1 bulan.
                         value: 'public, max-age=2592000, must-revalidate',
                     },
                 ],

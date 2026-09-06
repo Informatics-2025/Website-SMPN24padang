@@ -12,7 +12,13 @@
         "drizzle:push": "drizzle-kit push",
         "drizzle:migrate": "drizzle-kit migrate",
         "db:studio": "drizzle-kit studio",
-        "clean-install": "rimraf node_modules package-lock.json && npm install"
+        "clean-install": "rimraf node_modules package-lock.json && npm install",
+        "test": "tsx scripts/testing/run-tests.ts",
+        "test:unit": "tsx scripts/testing/run-tests.ts --unit",
+        "test:integration": "tsx scripts/testing/run-tests.ts --integration",
+        "test:e2e": "tsx scripts/testing/run-tests.ts --e2e",
+        "test:security": "tsx scripts/testing/run-tests.ts --security",
+        "test:auth": "tsx scripts/testing/run-tests.ts --auth"
     },
     "dependencies": {
         "@auth/drizzle-adapter": "^1.10.0",

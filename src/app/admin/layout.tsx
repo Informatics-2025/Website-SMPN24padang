@@ -1,7 +1,37 @@
 'use client';
 
 import AdminHeader from '@/components/admin-header'; // Import AdminHeader
+import { AdaptiveBreadcrumb } from '@/components/ui/adaptive-breadcrumb';
 import { ThemeToggle } from '@/components/theme-toggle';
+
+const ADMIN_BREADCRUMB_LABELS: Record<string, string> = {
+    admin: 'Admin',
+    dashboard: 'Dashboard',
+    homepage: 'Beranda',
+    profile: 'Profil',
+    principal: 'Profil Sekolah',
+    'vision-mission': 'Visi & Misi',
+    organization: 'Struktur Organisasi',
+    curriculum: 'Kurikulum',
+    accreditation: 'Akreditasi',
+    faculty: 'Guru & Tenaga Kependidikan',
+    'past-principals': 'Kepala Sekolah Terdahulu',
+    uniform: 'Aturan Seragam',
+    achievements: 'Prestasi',
+    news: 'Berita & Pengumuman',
+    announcements: 'Pengumuman',
+    articles: 'Artikel',
+    gallery: 'Galeri',
+    sispendik: 'Sispendik',
+    'master-data': 'Master Data',
+    faq: 'FAQ',
+    contact: 'Pesan & Kontak',
+    videos: 'Video Kegiatan',
+    users: 'Manajemen Pengguna',
+    comments: 'Komentar',
+    banksampah: 'Bank Sampah',
+    staff: 'Tenaga Kependidikan',
+};
 import { Button } from '@/components/ui/button';
 import {
     Sidebar,
@@ -377,6 +407,11 @@ export default function AdminLayout({
                     />
                     <main className="flex-1 p-4 md:p-8">
                         <div className="max-w-screen-xl mx-auto">
+                            <AdaptiveBreadcrumb
+                                labels={ADMIN_BREADCRUMB_LABELS}
+                                hideOnHome={false}
+                                className="mb-4 sm:mb-6"
+                            />
                             <div className="mb-4 hidden items-center gap-4 md:flex">
                                 {pathname !== '/admin/dashboard' && (
                                     <h1 className="text-2xl font-bold">
