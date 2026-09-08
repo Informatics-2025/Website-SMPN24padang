@@ -279,10 +279,6 @@ export function TabSetoranKelas({ kelas, jenisSampah }: TabSetoranKelasProps) {
     fetchRecap();
   }, [buildEmptyRows, fetchRecap]);
 
-  useEffect(() => {
-    fetchRecap();
-  }, [fetchRecap]);
-
   const openManage = async (k: Kelas) => {
     setManageClass(k);
     setManageOpen(true);

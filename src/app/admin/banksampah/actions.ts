@@ -42,7 +42,9 @@ const UpdateVideoSchema = VideoSchema;
 
 // Waste News Actions
 export async function getWasteNews() {
-  return await db.query.wasteNews.findMany();
+  return await db.query.wasteNews.findMany({
+    orderBy: (news, { desc }) => [desc(news.createdAt)],
+  });
 }
 
 export async function createWasteNews(prevState: unknown, formData: FormData) {
@@ -196,7 +198,9 @@ export async function deleteWasteNews(id: number) {
 
 // Waste Documentation Actions
 export async function getWasteDocumentation() {
-  return await db.query.wasteDocumentation.findMany();
+  return await db.query.wasteDocumentation.findMany({
+    orderBy: (docs, { desc }) => [desc(docs.createdAt)],
+  });
 }
 
 export async function createWasteDocumentation(

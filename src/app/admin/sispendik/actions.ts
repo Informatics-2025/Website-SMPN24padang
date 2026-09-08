@@ -9,7 +9,7 @@ import {
   setoranGuru,
   setoranMasyarakat,
 } from "@/lib/db/schema";
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, gte, lt, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
 async function ensureKelasSeeded() {
@@ -23,6 +23,14 @@ async function ensureKelasSeeded() {
     }
     await db.insert(kelas).values(kelasData);
   }
+}
+
+function monthRange(year: number, month: number) {
+  return { start: new Date(year, month - 1, 1), end: new Date(year, month, 1) };
+}
+
+function yearRange(year: number) {
+  return { start: new Date(year, 0, 1), end: new Date(year + 1, 0, 1) };
 }
 
 // Kelas Actions
@@ -181,13 +189,14 @@ export async function resetClassDepositsByMonth(
   year: number,
 ) {
   try {
+    const { start, end } = monthRange(year, month);
     await db
       .delete(sampahKelas)
       .where(
         and(
           eq(sampahKelas.kelasId, kelasId),
-          sql`EXTRACT(MONTH FROM ${sampahKelas.tanggalSetoran}) = ${month}`,
-          sql`EXTRACT(YEAR FROM ${sampahKelas.tanggalSetoran}) = ${year}`,
+          gte(sampahKelas.tanggalSetoran, start),
+          lt(sampahKelas.tanggalSetoran, end),
         ),
       );
     revalidatePath("/admin/sispendik");
@@ -400,6 +409,7 @@ export async function getClassRanking(month: number, year: number) {
 
 export async function getClassTotals(month: number, year: number) {
   try {
+    const { start, end } = monthRange(year, month);
     await ensureKelasSeeded();
     // Left join kelas with sampah_kelas and jenis_sampah to get totals per class.
     // Apply month/year filter in the JOIN condition to preserve classes without data.
@@ -419,8 +429,8 @@ export async function getClassTotals(month: number, year: number) {
         sampahKelas,
         and(
           eq(sampahKelas.kelasId, kelas.id),
-          sql`EXTRACT(MONTH FROM ${sampahKelas.tanggalSetoran}) = ${month}`,
-          sql`EXTRACT(YEAR FROM ${sampahKelas.tanggalSetoran}) = ${year}`,
+          gte(sampahKelas.tanggalSetoran, start),
+          lt(sampahKelas.tanggalSetoran, end),
         ),
       )
       .leftJoin(jenisSampah, eq(sampahKelas.jenisSampahId, jenisSampah.id))
@@ -435,61 +445,50 @@ export async function getClassTotals(month: number, year: number) {
 
 export async function getTotalsSummary(month: number, year: number) {
   try {
-    // Get student deposits
-    const studentDeposits = await db
+    const { start, end } = monthRange(year, month);
+    const [studentTotals, teacherTotals, communityTotals] = await Promise.all([
+      db
       .select({
-        jumlahKg: sampahKelas.jumlahKg,
-        hargaPerKg: sampahKelas.hargaPerKgSnapshot,
+        totalKg: sql<string>`COALESCE(SUM(${sampahKelas.jumlahKg}), 0)`,
+        totalValue: sql<string>`COALESCE(SUM(${sampahKelas.jumlahKg} * ${sampahKelas.hargaPerKgSnapshot}), 0)`,
       })
       .from(sampahKelas)
-      .innerJoin(jenisSampah, eq(sampahKelas.jenisSampahId, jenisSampah.id))
       .where(
         and(
-          sql`EXTRACT(MONTH FROM ${sampahKelas.tanggalSetoran}) = ${month}`,
-          sql`EXTRACT(YEAR FROM ${sampahKelas.tanggalSetoran}) = ${year}`,
+          gte(sampahKelas.tanggalSetoran, start),
+          lt(sampahKelas.tanggalSetoran, end),
         ),
-      );
-
-    // Get teacher deposits
-    const teacherDeposits = await db
+      ),
+      db
       .select({
-        jumlahKg: setoranGuru.jumlahKg,
-        hargaPerKg: setoranGuru.hargaPerKgSnapshot,
+        totalKg: sql<string>`COALESCE(SUM(${setoranGuru.jumlahKg}), 0)`,
+        totalValue: sql<string>`COALESCE(SUM(${setoranGuru.jumlahKg} * ${setoranGuru.hargaPerKgSnapshot}), 0)`,
       })
       .from(setoranGuru)
-      .innerJoin(jenisSampah, eq(setoranGuru.jenisSampahId, jenisSampah.id))
       .where(
         and(
-          sql`EXTRACT(MONTH FROM ${setoranGuru.tanggalSetoran}) = ${month}`,
-          sql`EXTRACT(YEAR FROM ${setoranGuru.tanggalSetoran}) = ${year}`,
+          gte(setoranGuru.tanggalSetoran, start),
+          lt(setoranGuru.tanggalSetoran, end),
         ),
-      );
-
-    const communityDeposits = await db
+      ),
+      db
       .select({
-        jumlahKg: setoranMasyarakat.jumlahKg,
-        hargaPerKg: setoranMasyarakat.hargaPerKgSnapshot,
+        totalKg: sql<string>`COALESCE(SUM(${setoranMasyarakat.jumlahKg}), 0)`,
+        totalValue: sql<string>`COALESCE(SUM(${setoranMasyarakat.jumlahKg} * ${setoranMasyarakat.hargaPerKgSnapshot}), 0)`,
       })
       .from(setoranMasyarakat)
       .where(
         and(
-          sql`EXTRACT(MONTH FROM ${setoranMasyarakat.tanggalSetoran}) = ${month}`,
-          sql`EXTRACT(YEAR FROM ${setoranMasyarakat.tanggalSetoran}) = ${year}`,
+          gte(setoranMasyarakat.tanggalSetoran, start),
+          lt(setoranMasyarakat.tanggalSetoran, end),
         ),
-      );
+      ),
+    ]);
 
-    const allDeposits = [
-      ...studentDeposits,
-      ...teacherDeposits,
-      ...communityDeposits,
-    ];
-
-    const totalKg = allDeposits.reduce(
-      (acc, row) => acc + Number(row.jumlahKg),
-      0,
-    );
-    const totalValue = allDeposits.reduce(
-      (acc, row) => acc + Number(row.jumlahKg) * Number(row.hargaPerKg),
+    const totals = [...studentTotals, ...teacherTotals, ...communityTotals];
+    const totalKg = totals.reduce((sum, row) => sum + Number(row.totalKg), 0);
+    const totalValue = totals.reduce(
+      (sum, row) => sum + Number(row.totalValue),
       0,
     );
 
@@ -670,6 +669,7 @@ export async function getLaporanPerolehanTahunan(year: number) {
   }
 
   try {
+    const { start, end } = yearRange(year);
     const [kelasData, guruData, masyarakatData] = await Promise.all([
       db
         .select({
@@ -678,7 +678,7 @@ export async function getLaporanPerolehanTahunan(year: number) {
           totalValue: sql<string>`SUM(${sampahKelas.jumlahKg} * ${sampahKelas.hargaPerKgSnapshot})`,
         })
         .from(sampahKelas)
-        .where(sql`EXTRACT(YEAR FROM ${sampahKelas.tanggalSetoran}) = ${year}`)
+        .where(and(gte(sampahKelas.tanggalSetoran, start), lt(sampahKelas.tanggalSetoran, end)))
         .groupBy(sql`EXTRACT(MONTH FROM ${sampahKelas.tanggalSetoran})`),
       db
         .select({
@@ -687,7 +687,7 @@ export async function getLaporanPerolehanTahunan(year: number) {
           totalValue: sql<string>`SUM(${setoranGuru.jumlahKg} * ${setoranGuru.hargaPerKgSnapshot})`,
         })
         .from(setoranGuru)
-        .where(sql`EXTRACT(YEAR FROM ${setoranGuru.tanggalSetoran}) = ${year}`)
+        .where(and(gte(setoranGuru.tanggalSetoran, start), lt(setoranGuru.tanggalSetoran, end)))
         .groupBy(sql`EXTRACT(MONTH FROM ${setoranGuru.tanggalSetoran})`),
       db
         .select({
@@ -696,9 +696,7 @@ export async function getLaporanPerolehanTahunan(year: number) {
           totalValue: sql<string>`SUM(${setoranMasyarakat.jumlahKg} * ${setoranMasyarakat.hargaPerKgSnapshot})`,
         })
         .from(setoranMasyarakat)
-        .where(
-          sql`EXTRACT(YEAR FROM ${setoranMasyarakat.tanggalSetoran}) = ${year}`,
-        )
+        .where(and(gte(setoranMasyarakat.tanggalSetoran, start), lt(setoranMasyarakat.tanggalSetoran, end)))
         .groupBy(sql`EXTRACT(MONTH FROM ${setoranMasyarakat.tanggalSetoran})`),
     ]);
 
@@ -736,6 +734,7 @@ export async function getPerkembanganSampahKelas(year: number) {
   }
 
   try {
+    const { start, end } = yearRange(year);
     const kelasResponse = await getAllKelas();
     if (!kelasResponse.data)
       return { error: kelasResponse.error || "Gagal memuat kelas." };
@@ -746,7 +745,7 @@ export async function getPerkembanganSampahKelas(year: number) {
         totalKg: sql<string>`SUM(${sampahKelas.jumlahKg})`,
       })
       .from(sampahKelas)
-      .where(sql`EXTRACT(YEAR FROM ${sampahKelas.tanggalSetoran}) = ${year}`)
+      .where(and(gte(sampahKelas.tanggalSetoran, start), lt(sampahKelas.tanggalSetoran, end)))
       .groupBy(
         sampahKelas.kelasId,
         sql`EXTRACT(MONTH FROM ${sampahKelas.tanggalSetoran})`,

@@ -1,6 +1,6 @@
 'use server';
 
-import { and, desc, eq, sql } from 'drizzle-orm';
+import { and, desc, eq, gte, lt } from 'drizzle-orm';
 import { z } from 'zod';
 import { db } from '@/lib/db';
 import { jenisSampah, setoranMasyarakat } from '@/lib/db/schema';
@@ -18,8 +18,13 @@ function revalidateSispendik() {
     revalidatePath('/sispendik');
 }
 
+function monthRange(year: number, month: number) {
+    return { start: new Date(year, month - 1, 1), end: new Date(year, month, 1) };
+}
+
 export async function getSetoranMasyarakat(month: number, year: number) {
     try {
+        const { start, end } = monthRange(year, month);
         const data = await db
             .select({
                 id: setoranMasyarakat.id,
@@ -38,8 +43,8 @@ export async function getSetoranMasyarakat(month: number, year: number) {
             )
             .where(
                 and(
-                    sql`EXTRACT(MONTH FROM ${setoranMasyarakat.tanggalSetoran}) = ${month}`,
-                    sql`EXTRACT(YEAR FROM ${setoranMasyarakat.tanggalSetoran}) = ${year}`,
+                    gte(setoranMasyarakat.tanggalSetoran, start),
+                    lt(setoranMasyarakat.tanggalSetoran, end),
                 ),
             )
             .orderBy(desc(setoranMasyarakat.tanggalSetoran));

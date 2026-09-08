@@ -6,6 +6,7 @@ export interface JenisSampah {
     updatedAt: Date;
 }
 
+
 export interface SampahKelas {
     id: number;
     kelasId: number;

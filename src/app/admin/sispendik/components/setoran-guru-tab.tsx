@@ -119,7 +119,14 @@ export function TabSetoranGuru({
     setLoading(false);
   }, [selectedMonth, selectedYear]);
 
+  // Data bulan berjalan sudah dikirim oleh halaman server.
+  // Fetch berikutnya hanya diperlukan saat filter bulan/tahun berubah.
+  const hasUsedInitialData = useRef(false);
   useEffect(() => {
+    if (!hasUsedInitialData.current) {
+      hasUsedInitialData.current = true;
+      return;
+    }
     refetchAllSetoran();
   }, [refetchAllSetoran]);
 

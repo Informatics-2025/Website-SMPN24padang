@@ -136,6 +136,10 @@ export const sampahKelas = pgTable(
     tanggalSetoranIdx: index("sampah_kelas_tanggal_setoran_idx").on(
       table.tanggalSetoran,
     ),
+    kelasTanggalSetoranIdx: index("sampah_kelas_kelas_tanggal_setoran_idx").on(
+      table.kelasId,
+      table.tanggalSetoran,
+    ),
   }),
 );
 
@@ -166,6 +170,10 @@ export const setoranGuru = pgTable(
   },
   (table) => ({
     tanggalSetoranIdx: index("setoran_guru_tanggal_setoran_idx").on(
+      table.tanggalSetoran,
+    ),
+    guruTanggalSetoranIdx: index("setoran_guru_guru_tanggal_setoran_idx").on(
+      table.guruId,
       table.tanggalSetoran,
     ),
   }),

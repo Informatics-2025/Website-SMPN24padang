@@ -2,7 +2,7 @@
 import { z } from 'zod';
 import { db } from '@/lib/db';
 import { setoranGuru, guruSispendik, jenisSampah } from '@/lib/db/schema';
-import { eq, desc, and, sql } from 'drizzle-orm';
+import { eq, desc, and, gte, lt } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 
 const FormSchema = z.object({
@@ -15,6 +15,10 @@ const FormSchema = z.object({
 
 const CreateSetoranGuru = FormSchema.omit({ id: true });
 const UpdateSetoranGuru = FormSchema.omit({ id: true, guruId: true });
+
+function monthRange(year: number, month: number) {
+    return { start: new Date(year, month - 1, 1), end: new Date(year, month, 1) };
+}
 
 export type State = {
     errors?: {
@@ -150,6 +154,7 @@ export async function deleteSetoranGuru(id: number) {
 
 export async function getSetoranGuru(month: number, year: number) {
     try {
+        const { start, end } = monthRange(year, month);
         const data = await db
             .select({
                 id: setoranGuru.id,
@@ -169,8 +174,8 @@ export async function getSetoranGuru(month: number, year: number) {
             )
             .where(
                 and(
-                    sql`EXTRACT(MONTH FROM ${setoranGuru.tanggalSetoran}) = ${month}`,
-                    sql`EXTRACT(YEAR FROM ${setoranGuru.tanggalSetoran}) = ${year}`,
+                    gte(setoranGuru.tanggalSetoran, start),
+                    lt(setoranGuru.tanggalSetoran, end),
                 ),
             )
             .orderBy(desc(setoranGuru.tanggalSetoran));
@@ -188,6 +193,7 @@ export async function getSetoranGuruByGuru(
     year: number,
 ) {
     try {
+        const { start, end } = monthRange(year, month);
         const data = await db
             .select({
                 id: setoranGuru.id,
@@ -208,8 +214,8 @@ export async function getSetoranGuruByGuru(
             .where(
                 and(
                     eq(setoranGuru.guruId, guruId),
-                    sql`EXTRACT(MONTH FROM ${setoranGuru.tanggalSetoran}) = ${month}`,
-                    sql`EXTRACT(YEAR FROM ${setoranGuru.tanggalSetoran}) = ${year}`,
+                    gte(setoranGuru.tanggalSetoran, start),
+                    lt(setoranGuru.tanggalSetoran, end),
                 ),
             )
             .orderBy(desc(setoranGuru.tanggalSetoran));
