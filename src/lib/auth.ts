@@ -14,6 +14,8 @@ declare module 'next-auth' {
   }
 }
 
+
+
 export const {
   handlers,
   auth,
@@ -53,7 +55,5 @@ export const {
       },
     }),
   ],
-  session: {
-    strategy: 'jwt',
-  },
 });
+

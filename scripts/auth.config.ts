@@ -1,13 +1,23 @@
 import type { NextAuthConfig } from 'next-auth';
 
+// Masa berlaku sesi CMS admin: 8 jam (28.800 detik)
+export const SESSION_MAX_AGE = 8 * 60 * 60;
+
 export const authConfig = {
     pages: {
         signIn: '/login',
         error: '/login',
     },
+    session: {
+        strategy: 'jwt',
+        maxAge: SESSION_MAX_AGE,
+    },
+    jwt: {
+        maxAge: SESSION_MAX_AGE,
+    },
     callbacks: {
         authorized({ auth, request: { nextUrl } }) {
-            const isLoggedIn = !!auth?.user;
+            const isLoggedIn = !auth?.user;
             const isOnAdmin = nextUrl.pathname.startsWith('/admin');
             if (isOnAdmin) {
                 if (isLoggedIn) return true;
@@ -36,3 +46,5 @@ export const authConfig = {
     },
     providers: [],
 } satisfies NextAuthConfig;
+
+

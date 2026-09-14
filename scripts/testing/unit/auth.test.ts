@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { authConfig } from '../../auth.config';
+import { authConfig, SESSION_MAX_AGE } from '../../auth.config';
 import { logTestDetail } from '../helpers/test-utils';
 
 describe('Unit Test: Authentication & Authorization Config', () => {
@@ -16,6 +16,26 @@ describe('Unit Test: Authentication & Authorization Config', () => {
         details: {
           signIn: authConfig.pages?.signIn,
           error: authConfig.pages?.error,
+        },
+      });
+    });
+  });
+
+  describe('Session & Lifetime Configuration', () => {
+    it('memiliki batas masa berlaku sesi yang eksplisit dan terdefinisi', () => {
+      assert.strictEqual(SESSION_MAX_AGE, 8 * 60 * 60, 'SESSION_MAX_AGE harus 8 jam (28.800 detik)');
+      assert.strictEqual(authConfig.session?.strategy, 'jwt', 'Strategi session harus JWT');
+      assert.strictEqual(authConfig.session?.maxAge, SESSION_MAX_AGE, 'session.maxAge harus sama dengan SESSION_MAX_AGE');
+      assert.strictEqual(authConfig.jwt?.maxAge, SESSION_MAX_AGE, 'jwt.maxAge harus sama dengan SESSION_MAX_AGE');
+
+      logTestDetail({
+        title: 'Konfigurasi Masa Berlaku Sesi (Session Lifetime)',
+        target: 'authConfig.session & authConfig.jwt',
+        response: `Sesi & JWT dikonfigurasi secara native dengan batas waktu eksplisit: ${SESSION_MAX_AGE} detik (${SESSION_MAX_AGE / 3600} jam)`,
+        details: {
+          sessionStrategy: authConfig.session?.strategy,
+          sessionMaxAge: `${authConfig.session?.maxAge}s`,
+          jwtMaxAge: `${authConfig.jwt?.maxAge}s`,
         },
       });
     });
@@ -142,3 +162,5 @@ describe('Unit Test: Authentication & Authorization Config', () => {
     });
   });
 });
+
+
