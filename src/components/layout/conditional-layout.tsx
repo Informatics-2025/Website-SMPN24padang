@@ -2,7 +2,7 @@
 
 import { usePathname } from 'next/navigation';
 import Header from '@/components/layout/header';
-import Footer from '@/components/layout/Footer';
+import Footer from '@/components/layout/footer';
 import BackToTopButton from '@/components/ui/back-to-top-button';
 import { AdaptiveBreadcrumb } from '@/components/ui/adaptive-breadcrumb';
 
