@@ -17,11 +17,10 @@ export const authConfig = {
     },
     callbacks: {
         authorized({ auth, request: { nextUrl } }) {
-            const isLoggedIn = !auth?.user;
+            const isLoggedIn = Boolean(auth?.user);
             const isOnAdmin = nextUrl.pathname.startsWith('/admin');
             if (isOnAdmin) {
-                if (isLoggedIn) return true;
-                return false;
+                return isLoggedIn;
             }
             return true;
         },

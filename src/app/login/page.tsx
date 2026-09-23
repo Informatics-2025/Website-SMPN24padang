@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useFormState, useFormStatus } from 'react-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -17,54 +18,47 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import Image from 'next/image';
+import { authenticate, type LoginState } from './actions';
+
+function SubmitButton() {
+    const { pending } = useFormStatus();
+    return (
+        <Button type="submit" className="w-full" disabled={pending}>
+            {pending ? (
+                <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Mohon tunggu...</>
+            ) : (
+                'Login'
+            )}
+        </Button>
+    );
+}
 
 export default function LoginPage() {
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [isLoading, setIsLoading] = useState(false);
-    const [showPassword, setShowPassword] = useState(false);
+    const [state, formAction] = useFormState<LoginState | undefined, FormData>(
+        authenticate,
+        undefined,
+    );
     const router = useRouter();
     const { toast } = useToast();
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setIsLoading(true);
+    useEffect(() => {
+        if (!state) return;
 
-        try {
-            const response = await fetch('/api/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ email, password }),
+        if (state.success) {
+            toast({
+                title: 'Login Berhasil',
+                description: 'Mengalihkan Anda ke dashboard admin...',
             });
-
-            const data = await response.json();
-
-            if (response.ok) {
-                toast({
-                    title: 'Login Berhasil',
-                    description: 'Mengalihkan Anda ke dashboard admin...',
-                });
-                router.push('/admin/dashboard');
-            } else {
-                toast({
-                    variant: 'destructive',
-                    title: 'Login Gagal',
-                    description: data.message || 'Email atau password yang Anda masukkan salah.',
-                });
-            }
-        } catch (error) {
-            console.error('An unexpected error occurred during sign-in:', error);
+            router.push('/admin/dashboard');
+            router.refresh();
+        } else {
             toast({
                 variant: 'destructive',
-                title: 'Terjadi Kesalahan',
-                description: 'Tidak dapat terhubung ke server. Coba lagi nanti.',
+                title: 'Login Gagal',
+                description: state.message || 'Email atau password yang Anda masukkan salah.',
             });
         }
-
-        setIsLoading(false);
-    };
+    }, [state, router, toast]);
 
     return (
         <main className="flex min-h-screen flex-col items-center justify-center bg-gray-100 dark:bg-gray-900 p-4">
@@ -82,50 +76,25 @@ export default function LoginPage() {
                         Masukkan email dan password untuk mengakses panel admin.
                     </CardDescription>
                 </CardHeader>
-                <form onSubmit={handleSubmit}>
+                <form action={formAction}>
                     <CardContent className="grid gap-4">
                         <div className="grid gap-2">
                             <Label htmlFor="email">Email</Label>
                             <Input
                                 id="email"
+                                name="email"
                                 type="email"
                                 placeholder="admin@example.com"
                                 required
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                disabled={isLoading}
                             />
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor="password">Password</Label>
-                            <div className="relative">
-                                <Input
-                                    id="password"
-                                    type={showPassword ? 'text' : 'password'}
-                                    required
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    disabled={isLoading}
-                                />
-                                <button
-                                    type="button"
-                                    onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 disabled:opacity-50"
-                                    disabled={isLoading}
-                                >
-                                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                                </button>
-                            </div>
+                            <PasswordInput />
                         </div>
                     </CardContent>
                     <CardFooter>
-                        <Button type="submit" className="w-full" disabled={isLoading}>
-                            {isLoading ? (
-                                <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Mohon tunggu...</>
-                            ) : (
-                                'Login'
-                            )}
-                        </Button>
+                        <SubmitButton />
                     </CardFooter>
                 </form>
             </Card>
@@ -138,5 +107,27 @@ export default function LoginPage() {
                 </Button>
             </div>
         </main>
+    );
+}
+
+function PasswordInput() {
+    const [showPassword, setShowPassword] = useState(false);
+    return (
+        <div className="relative">
+            <Input
+                id="password"
+                name="password"
+                type={showPassword ? 'text' : 'password'}
+                required
+            />
+            <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500"
+                aria-label={showPassword ? 'Sembunyikan password' : 'Tampilkan password'}
+            >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
+        </div>
     );
 }
