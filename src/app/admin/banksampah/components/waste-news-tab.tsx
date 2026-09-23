@@ -35,6 +35,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  CardMobileOnly,
+  MobileDataCard,
+  MobileDataCardHeader,
+  MobileDataCardRow,
+  MobileDataCardTable,
+  MobileEmptyCard,
+  TableDesktopOnly,
+} from "@/components/admin/mobile-data-cards";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import type { WasteNewsItem } from "@/types/banksampah";
@@ -225,56 +234,127 @@ export default function WasteNewsTab() {
           </DialogContent>
         </Dialog>
       </div>
-      <div className="rounded-lg border max-md:border-0">
+      {/* Tampilan Desktop: Tabel Standar */}
+      <TableDesktopOnly className="rounded-lg border">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Gambar</TableHead>
+              <TableHead className="w-[80px]">Gambar</TableHead>
               <TableHead>Judul</TableHead>
-              <TableHead className="hidden md:table-cell">Deskripsi</TableHead>
+              <TableHead>Deskripsi</TableHead>
               <TableHead>Google Drive</TableHead>
-              <TableHead className="text-right">Aksi</TableHead>
+              <TableHead className="w-[70px] text-right">Aksi</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {news.map((item) => (
-              <TableRow key={item.id}>
-                <TableCell>
-                  <Image
-                    src={item.previewUrl || "https://placehold.co/80x80.png"}
-                    alt={item.title}
-                    width={80}
-                    height={80}
-                    className="h-16 w-16 rounded-md object-cover md:h-20 md:w-20"
-                  />
+            {news.length > 0 ? (
+              news.map((item) => (
+                <TableRow key={item.id}>
+                  <TableCell>
+                    <Image
+                      src={item.previewUrl || "https://placehold.co/80x80.png"}
+                      alt={item.title}
+                      width={80}
+                      height={80}
+                      className="h-16 w-16 rounded-md object-cover md:h-16 md:w-16"
+                    />
+                  </TableCell>
+                  <TableCell className="font-medium">
+                    <span className="break-words">{item.title}</span>
+                  </TableCell>
+                  <TableCell>
+                    <span className="break-words text-muted-foreground line-clamp-3">
+                      {item.description}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    {item.googleDriveUrl ? (
+                      <a
+                        href={item.googleDriveUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="break-all font-medium text-primary hover:underline"
+                      >
+                        Buka Link
+                      </a>
+                    ) : (
+                      <span className="text-muted-foreground">-</span>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" className="h-8 w-8 p-0">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem
+                          onSelect={() => {
+                            setSelectedNews(item);
+                            setEditOpen(true);
+                          }}
+                        >
+                          <Pencil className="mr-2 h-4 w-4" />
+                          <span>Edit</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onSelect={() => {
+                            setSelectedNews(item);
+                            setDeleteOpen(true);
+                          }}
+                          className="text-destructive focus:bg-destructive/10 focus:text-destructive"
+                        >
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          <span>Hapus</span>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell
+                  colSpan={5}
+                  className="h-24 text-center text-muted-foreground"
+                >
+                  Belum ada data edukasi.
                 </TableCell>
-                <TableCell className="font-medium" mobileLabel="Judul">
-                  <span className="break-words">{item.title}</span>
-                </TableCell>
-                <TableCell mobileLabel="Deskripsi">
-                  <span className="break-words text-muted-foreground">
-                    {item.description}
-                  </span>
-                </TableCell>
-                <TableCell mobileLabel="Google Drive">
-                  {item.googleDriveUrl ? (
-                    <a
-                      href={item.googleDriveUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="break-all text-blue-600 hover:underline"
-                    >
-                      Link
-                    </a>
-                  ) : (
-                    "-"
-                  )}
-                </TableCell>
-                <TableCell className="text-right">
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </TableDesktopOnly>
+
+      {/* Tampilan Mobile: Kartu Berstruktur Tabel */}
+      <CardMobileOnly>
+        {news.length > 0 ? (
+          news.map((item) => (
+            <MobileDataCard key={item.id}>
+              <MobileDataCardHeader
+                media={
+                  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg border border-border/80 bg-muted overflow-hidden">
+                    <Image
+                      src={item.previewUrl || "https://placehold.co/80x80.png"}
+                      alt={item.title}
+                      width={56}
+                      height={56}
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
+                }
+                title={item.title}
+                action={
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" className="h-8 w-8 p-0">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                      >
                         <MoreHorizontal className="h-4 w-4" />
+                        <span className="sr-only">Menu</span>
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
@@ -299,12 +379,35 @@ export default function WasteNewsTab() {
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+                }
+              />
+              <MobileDataCardTable>
+                <MobileDataCardRow label="Deskripsi">
+                  <p className="line-clamp-4 leading-relaxed text-muted-foreground">
+                    {item.description}
+                  </p>
+                </MobileDataCardRow>
+                <MobileDataCardRow label="Google Drive">
+                  {item.googleDriveUrl ? (
+                    <a
+                      href={item.googleDriveUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-medium text-primary hover:underline break-all"
+                    >
+                      Buka Link Drive
+                    </a>
+                  ) : (
+                    <span className="text-muted-foreground">-</span>
+                  )}
+                </MobileDataCardRow>
+              </MobileDataCardTable>
+            </MobileDataCard>
+          ))
+        ) : (
+          <MobileEmptyCard message="Belum ada data edukasi." />
+        )}
+      </CardMobileOnly>
 
       <Dialog open={isEditOpen} onOpenChange={setEditOpen}>
         <DialogContent>

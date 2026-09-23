@@ -36,6 +36,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  CardMobileOnly,
+  MobileDataCard,
+  MobileDataCardHeader,
+  MobileDataCardRow,
+  MobileDataCardTable,
+  MobileEmptyCard,
+  TableDesktopOnly,
+} from "@/components/admin/mobile-data-cards";
 import { useToast } from "@/hooks/use-toast";
 import type { WasteDocumentationItem } from "@/types/banksampah";
 import {
@@ -223,50 +232,121 @@ export default function WasteDocumentationTab() {
           </DialogContent>
         </Dialog>
       </div>
-      <div className="rounded-lg border max-md:border-0">
+      {/* Tampilan Desktop: Tabel Standar */}
+      <TableDesktopOnly className="rounded-lg border">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Gambar</TableHead>
+              <TableHead className="w-[80px]">Gambar</TableHead>
               <TableHead>Judul</TableHead>
               <TableHead>Youtube URL</TableHead>
-              <TableHead className="text-right">Aksi</TableHead>
+              <TableHead className="w-[70px] text-right">Aksi</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {docs.map((item) => (
-              <TableRow key={item.id}>
-                <TableCell>
-                  <Image
-                    src={item.imageUrl || "https://placehold.co/80x80.png"}
-                    alt={item.title}
-                    width={80}
-                    height={80}
-                    className="h-16 w-16 rounded-md object-cover md:h-20 md:w-20"
-                  />
+            {docs.length > 0 ? (
+              docs.map((item) => (
+                <TableRow key={item.id}>
+                  <TableCell>
+                    <Image
+                      src={item.imageUrl || "https://placehold.co/80x80.png"}
+                      alt={item.title}
+                      width={80}
+                      height={80}
+                      className="h-16 w-16 rounded-md object-cover md:h-16 md:w-16"
+                    />
+                  </TableCell>
+                  <TableCell className="font-medium">
+                    <span className="break-words">{item.title}</span>
+                  </TableCell>
+                  <TableCell>
+                    {item.youtubeUrl ? (
+                      <a
+                        href={item.youtubeUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="break-all font-medium text-primary hover:underline"
+                      >
+                        {item.youtubeUrl}
+                      </a>
+                    ) : (
+                      <span className="text-muted-foreground">-</span>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" className="h-8 w-8 p-0">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem
+                          onSelect={() => {
+                            setSelectedDoc(item);
+                            setEditOpen(true);
+                          }}
+                        >
+                          <Pencil className="mr-2 h-4 w-4" />
+                          <span>Edit</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onSelect={() => {
+                            setSelectedDoc(item);
+                            setDeleteOpen(true);
+                          }}
+                          className="text-destructive focus:bg-destructive/10 focus:text-destructive"
+                        >
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          <span>Hapus</span>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell
+                  colSpan={4}
+                  className="h-24 text-center text-muted-foreground"
+                >
+                  Belum ada data dokumentasi.
                 </TableCell>
-                <TableCell className="font-medium" mobileLabel="Judul">
-                  <span className="break-words">{item.title}</span>
-                </TableCell>
-                <TableCell mobileLabel="Youtube URL">
-                  {item.youtubeUrl ? (
-                    <a
-                      href={item.youtubeUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="block break-all text-blue-600 hover:underline"
-                    >
-                      {item.youtubeUrl}
-                    </a>
-                  ) : (
-                    "-"
-                  )}
-                </TableCell>
-                <TableCell className="text-right">
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </TableDesktopOnly>
+
+      {/* Tampilan Mobile: Kartu Berstruktur Tabel */}
+      <CardMobileOnly>
+        {docs.length > 0 ? (
+          docs.map((item) => (
+            <MobileDataCard key={item.id}>
+              <MobileDataCardHeader
+                media={
+                  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg border border-border/80 bg-muted overflow-hidden">
+                    <Image
+                      src={item.imageUrl || "https://placehold.co/80x80.png"}
+                      alt={item.title}
+                      width={56}
+                      height={56}
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
+                }
+                title={item.title}
+                action={
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" className="h-8 w-8 p-0">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                      >
                         <MoreHorizontal className="h-4 w-4" />
+                        <span className="sr-only">Menu</span>
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
@@ -291,12 +371,39 @@ export default function WasteDocumentationTab() {
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+                }
+              />
+              <MobileDataCardTable>
+                <MobileDataCardRow label="Tipe Media">
+                  <span className="font-medium text-foreground">
+                    {item.imageUrl && item.youtubeUrl
+                      ? "Foto & Video"
+                      : item.youtubeUrl
+                      ? "Video YouTube"
+                      : "Foto Dokumentasi"}
+                  </span>
+                </MobileDataCardRow>
+                <MobileDataCardRow label="YouTube URL">
+                  {item.youtubeUrl ? (
+                    <a
+                      href={item.youtubeUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-medium text-primary hover:underline break-all"
+                    >
+                      <span className="line-clamp-2">{item.youtubeUrl}</span>
+                    </a>
+                  ) : (
+                    <span className="text-muted-foreground">-</span>
+                  )}
+                </MobileDataCardRow>
+              </MobileDataCardTable>
+            </MobileDataCard>
+          ))
+        ) : (
+          <MobileEmptyCard message="Belum ada data dokumentasi." />
+        )}
+      </CardMobileOnly>
 
       <Dialog open={isEditOpen} onOpenChange={setEditOpen}>
         <DialogContent>

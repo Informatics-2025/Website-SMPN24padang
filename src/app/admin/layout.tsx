@@ -63,6 +63,8 @@ import {
     MessageSquareTextIcon,
     Network,
     Newspaper,
+    PanelLeftClose,
+    PanelLeftOpen,
     Phone,
     Recycle,
     Shirt,
@@ -70,13 +72,14 @@ import {
     Trophy,
     UserCircle,
     Users,
+    X,
     Youtube,
 } from 'lucide-react';
 import { signOut } from 'next-auth/react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 export default function AdminLayout({
     children,
@@ -87,14 +90,16 @@ export default function AdminLayout({
     const router = useRouter();
     const { toast } = useToast();
     const isMobile = useIsMobile();
-    // Desktop: sidebar terbuka (dikontrol tombol). Mobile: sidebar tertutup (drawer).
+
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const [isMobileOpen, setIsMobileOpen] = useState(false);
 
+    // Ref untuk mendeteksi klik di luar sidebar tanpa overlay
+    const sidebarRef = useRef<HTMLDivElement>(null);
+
+    // Reset state saat berpindah antara mobile/desktop
     useEffect(() => {
-        if (!isMobile) {
-            setIsSidebarOpen(true);
-        }
+        if (!isMobile) setIsSidebarOpen(true);
         setIsMobileOpen(false);
     }, [isMobile]);
 
@@ -103,95 +108,56 @@ export default function AdminLayout({
         setIsMobileOpen(false);
     }, [pathname]);
 
-    // Kunci scroll body saat drawer mobile terbuka agar halaman di belakang
-    // tidak ikut bergeser (sidebar jadi tidak terlihat "mengambang").
+    // Deteksi klik/sentuh di luar sidebar — tutup drawer mobile secara otomatis
     useEffect(() => {
-        if (!(isMobile && isMobileOpen)) return;
+        if (!isMobileOpen) return;
 
-        const { overflow, paddingRight } = document.body.style;
-        const scrollbarWidth =
-            window.innerWidth - document.documentElement.clientWidth;
-
-        document.body.style.overflow = 'hidden';
-        if (scrollbarWidth > 0) {
-            document.body.style.paddingRight = `${scrollbarWidth}px`;
-        }
-
-        return () => {
-            document.body.style.overflow = overflow;
-            document.body.style.paddingRight = paddingRight;
-        };
-    }, [isMobile, isMobileOpen]);
-
-    // Geser ke atas: kalau user menyentuh/scroll area konten saat mode mobile,
-    // drawer otomatis tertutup.
-    useEffect(() => {
-        if (!(isMobile && isMobileOpen)) return;
-
-        let startY = 0;
-        let startX = 0;
-
-        const onTouchStart = (e: TouchEvent) => {
-            startY = e.touches[0].clientY;
-            startX = e.touches[0].clientX;
-        };
-
-        const onTouchMove = (e: TouchEvent) => {
-            const dy = e.touches[0].clientY - startY;
-            const dx = e.touches[0].clientX - startX;
-            // Sengaja menyentuh/scroll konten (bukan gesture geser horizontal)
-            if (Math.abs(dy) > 6 && Math.abs(dy) > Math.abs(dx)) {
+        const handleOutside = (e: MouseEvent | TouchEvent) => {
+            if (
+                sidebarRef.current &&
+                !sidebarRef.current.contains(e.target as Node)
+            ) {
                 setIsMobileOpen(false);
             }
         };
 
-        window.addEventListener('touchstart', onTouchStart, { passive: true });
-        window.addEventListener('touchmove', onTouchMove, { passive: true });
-        return () => {
-            window.removeEventListener('touchstart', onTouchStart);
-            window.removeEventListener('touchmove', onTouchMove);
-        };
-    }, [isMobile, isMobileOpen]);
+        // Sedikit delay agar event pembuka sidebar tidak langsung ditangkap
+        const timer = setTimeout(() => {
+            document.addEventListener('mousedown', handleOutside);
+            document.addEventListener('touchstart', handleOutside);
+        }, 50);
 
-    // Moved menuItems declaration before its usage
-    const menuItems = [
+        return () => {
+            clearTimeout(timer);
+            document.removeEventListener('mousedown', handleOutside);
+            document.removeEventListener('touchstart', handleOutside);
+        };
+    }, [isMobileOpen]);
+
+    // Tutup drawer saat Escape ditekan
+    useEffect(() => {
+        if (!isMobileOpen) return;
+        const onKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') setIsMobileOpen(false);
+        };
+        window.addEventListener('keydown', onKeyDown);
+        return () => window.removeEventListener('keydown', onKeyDown);
+    }, [isMobileOpen]);
+
+    // Memoize agar array tidak dibuat ulang setiap render
+    const menuItems = useMemo(() => [
         { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
         { href: '/admin/homepage', label: 'Beranda', icon: Home },
         {
             label: 'Profil',
             icon: UserCircle,
             subItems: [
-                {
-                    href: '/admin/profile/principal',
-                    label: 'Profil Sekolah',
-                    icon: UserCircle,
-                },
-
-                {
-                    href: '/admin/profile/vision-mission',
-                    label: 'Visi & Misi',
-                    icon: Target,
-                },
-                {
-                    href: '/admin/organization',
-                    label: 'Struktur Organisasi',
-                    icon: Network,
-                },
-                {
-                    href: '/admin/curriculum',
-                    label: 'Kurikulum',
-                    icon: Target,
-                },
-                {
-                    href: '/admin/accreditation',
-                    label: 'Sertifikasi Akreditasi',
-                    icon: Award,
-                },
-                {
-                    href: '/admin/profile/uniform',
-                    label: 'Seragam',
-                    icon: Shirt,
-                },
+                { href: '/admin/profile/principal', label: 'Profil Sekolah', icon: UserCircle },
+                { href: '/admin/profile/vision-mission', label: 'Visi & Misi', icon: Target },
+                { href: '/admin/organization', label: 'Struktur Organisasi', icon: Network },
+                { href: '/admin/curriculum', label: 'Kurikulum', icon: Target },
+                { href: '/admin/accreditation', label: 'Sertifikasi Akreditasi', icon: Award },
+                { href: '/admin/profile/uniform', label: 'Seragam', icon: Shirt },
             ],
         },
         { href: '/admin/staff', label: 'Guru & Staf', icon: Users },
@@ -200,17 +166,9 @@ export default function AdminLayout({
             icon: Newspaper,
             subItems: [
                 { href: '/admin/news', label: 'Berita', icon: Newspaper },
-                {
-                    href: '/admin/announcements',
-                    label: 'Pengumuman',
-                    icon: Megaphone,
-                },
+                { href: '/admin/announcements', label: 'Pengumuman', icon: Megaphone },
                 { href: '/admin/sispendik', label: 'Sispendig', icon: Recycle },
-                {
-                    href: '/admin/banksampah',
-                    label: 'Bank Sampah',
-                    icon: Archive,
-                },
+                { href: '/admin/banksampah', label: 'Bank Sampah', icon: Archive },
             ],
         },
         { href: '/admin/achievements', label: 'Prestasi', icon: Trophy },
@@ -218,61 +176,45 @@ export default function AdminLayout({
             label: 'Galeri',
             icon: GalleryHorizontal,
             subItems: [
-                {
-                    href: '/admin/gallery',
-                    label: 'Galeri Foto',
-                    icon: ImageIcon,
-                },
+                { href: '/admin/gallery', label: 'Galeri Foto', icon: ImageIcon },
                 { href: '/admin/videos', label: 'Galeri Video', icon: Youtube },
             ],
         },
         { href: '/admin/contact', label: 'Kontak', icon: Phone },
         { href: '/admin/faq', label: 'FAQ', icon: MessageCircleQuestion },
-        {
-            href: '/admin/comments',
-            label: 'Komentar',
-            icon: MessageSquareTextIcon,
-        },
-    ];
+        { href: '/admin/comments', label: 'Komentar', icon: MessageSquareTextIcon },
+    ], []);
 
-    const [collapsibleOpenStates, setCollapsibleOpenStates] = React.useState<
-        boolean[]
-    >(menuItems.map(() => false));
+    const [collapsibleOpenStates, setCollapsibleOpenStates] = React.useState<boolean[]>(
+        () => menuItems.map(() => false),
+    );
 
-    const handleLogout = async () => {
+    const handleLogout = useCallback(async () => {
         try {
             await signOut({ redirect: false });
             toast({ title: 'Sukses', description: 'Anda telah keluar.' });
             window.location.href = '/login';
-        } catch (error) {
+        } catch {
             toast({
                 variant: 'destructive',
                 title: 'Error',
                 description: 'Gagal untuk keluar.',
             });
         }
-    };
+    }, [toast]);
 
     return (
         <SidebarProvider>
             <div className="flex min-h-screen">
                 {/* Drawer container: fixed & full-height di mobile supaya sidebar
-                    mengunci ke viewport, tidak ikut ter-scroll bersama halaman. */}
+                    mengunci ke viewport, tidak ikut ter-scroll bersama halaman.
+                    sidebarRef digunakan untuk deteksi klik di luar sidebar. */}
                 <div
+                    ref={sidebarRef}
                     className={`fixed inset-y-0 left-0 z-50 h-dvh transition-transform duration-300 ease-in-out md:static md:h-auto md:translate-x-0 ${
                         isMobileOpen ? 'translate-x-0' : '-translate-x-full'
                     } print:hidden`}
                 >
-                    {/* Overlay gelap hanya di mobile */}
-                    <div
-                        aria-hidden="true"
-                        onClick={() => setIsMobileOpen(false)}
-                        className={`absolute inset-0 bg-black/50 transition-opacity duration-300 md:hidden ${
-                            isMobileOpen
-                                ? 'opacity-100'
-                                : 'pointer-events-none opacity-0'
-                        }`}
-                    />
 
                     <Sidebar
                         onTouchMove={(e) => e.stopPropagation()}
@@ -301,6 +243,15 @@ export default function AdminLayout({
                                 >
                                     <UserCircle className="h-6 w-6 text-white/70 hover:text-white transition-colors" />
                                 </Link>
+                                {/* Tombol tutup sidebar — hanya tampil di mobile */}
+                                <button
+                                    type="button"
+                                    aria-label="Tutup sidebar"
+                                    onClick={() => setIsMobileOpen(false)}
+                                    className="md:hidden flex items-center justify-center h-7 w-7 rounded-md text-white/70 hover:text-white hover:bg-white/10 transition-colors"
+                                >
+                                    <X className="h-4 w-4" />
+                                </button>
                             </div>
                         </div>
                     </SidebarHeader>

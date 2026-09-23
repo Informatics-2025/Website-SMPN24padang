@@ -32,12 +32,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -55,12 +50,20 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  CardMobileOnly,
+  MobileDataCard,
+  MobileDataCardHeader,
+  MobileDataCardRow,
+  MobileDataCardTable,
+  MobileEmptyCard,
+  TableDesktopOnly,
+} from "@/components/admin/mobile-data-cards";
 import { useToast } from "@/hooks/use-toast";
 import type { staff as StaffSchema } from "@/lib/db/schema";
 import type { FormActionState } from "@/types/action-state";
 import { type InferSelectModel } from "drizzle-orm";
 import {
-  MoreHorizontal,
   Pencil,
   PlusCircle,
   Trash2,
@@ -283,7 +286,7 @@ export default function StaffClientPage({
 
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="p-4 sm:p-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0">
             <CardTitle className="text-xl font-bold sm:text-2xl">
@@ -321,100 +324,188 @@ export default function StaffClientPage({
           </Select>
         </div>
       </CardHeader>
-      <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="hidden md:table-cell">Foto</TableHead>
-              <TableHead>Nama</TableHead>
-              <TableHead>Jabatan</TableHead>
-              <TableHead>Wali Kelas</TableHead>
-              <TableHead className="text-right">Aksi</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredStaff.length > 0 ? (
-              filteredStaff.map((item) => (
-                <TableRow key={item.id}>
-                  <TableCell className="max-md:mb-1">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-md border bg-muted md:h-10 md:w-10">
-                      {item.imageUrl ? (
-                        <Image
-                          src={item.imageUrl}
-                          alt={item.name}
-                          width={40}
-                          height={40}
-                          className="h-full w-full rounded-md object-cover"
-                        />
+      <CardContent className="p-4 pt-0 sm:p-6 sm:pt-0">
+        {/* Tampilan Desktop: Tabel Standar */}
+        <TableDesktopOnly className="rounded-lg border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[60px]">Foto</TableHead>
+                <TableHead>Nama</TableHead>
+                <TableHead>Jabatan</TableHead>
+                <TableHead>Mata Pelajaran</TableHead>
+                <TableHead>Wali Kelas</TableHead>
+                <TableHead className="w-[70px] text-right">Aksi</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredStaff.length > 0 ? (
+                filteredStaff.map((item) => (
+                  <TableRow key={item.id}>
+                    <TableCell>
+                      <div className="flex h-10 w-10 items-center justify-center rounded-md border bg-muted">
+                        {item.imageUrl ? (
+                          <Image
+                            src={item.imageUrl}
+                            alt={item.name}
+                            width={40}
+                            height={40}
+                            className="h-full w-full rounded-md object-cover"
+                          />
+                        ) : (
+                          <span className="font-semibold text-muted-foreground">
+                            {item.name.charAt(0)}
+                          </span>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell className="font-medium">
+                      <span className="break-words">{item.name}</span>
+                    </TableCell>
+                    <TableCell>
+                      <span className="text-muted-foreground">{item.position}</span>
+                    </TableCell>
+                    <TableCell>
+                      <span className="text-muted-foreground">
+                        {item.subject || "-"}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      {item.homeroomOf ? (
+                        <Badge variant="secondary" className="whitespace-normal">
+                          {item.homeroomOf}
+                        </Badge>
                       ) : (
-                        <span className="text-muted-foreground">
-                          {item.name.charAt(0)}
-                        </span>
+                        "-"
                       )}
-                    </div>
-                  </TableCell>
-                  <TableCell
-                    mobileLabel="Nama"
-                    className="text-base font-semibold leading-snug md:text-sm md:font-medium"
-                  >
-                    <span className="break-words">{item.name}</span>
-                  </TableCell>
-                  <TableCell mobileLabel="Jabatan">
-                    <span className="break-words text-muted-foreground">
-                      {item.position}
-                    </span>
-                  </TableCell>
-                  <TableCell mobileLabel="Wali Kelas">
-                    {item.homeroomOf ? (
-                      <Badge variant="secondary" className="whitespace-normal">
-                        {item.homeroomOf}
-                      </Badge>
-                    ) : (
-                      "-"
-                    )}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex items-center justify-end gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-muted-foreground hover:text-primary"
                           onClick={() => {
                             setSelectedStaff(item);
                             setDialog("edit");
                           }}
                         >
-                          <Pencil className="mr-2 h-4 w-4" /> Edit
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          className="text-red-500"
+                          <Pencil className="h-4 w-4" />
+                          <span className="sr-only">Edit</span>
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-muted-foreground hover:text-destructive"
                           onClick={() => {
                             setSelectedStaff(item);
                             setDialog("delete");
                           }}
                         >
-                          <Trash2 className="mr-2 h-4 w-4" /> Hapus
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                          <Trash2 className="h-4 w-4" />
+                          <span className="sr-only">Hapus</span>
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell
+                    colSpan={6}
+                    className="h-24 text-center text-muted-foreground"
+                  >
+                    Belum ada data.
                   </TableCell>
                 </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={5}
-                  className="h-24 text-center max-md:block max-md:h-auto max-md:py-6"
-                >
-                  Belum ada data.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
+              )}
+            </TableBody>
+          </Table>
+        </TableDesktopOnly>
+
+        {/* Tampilan Mobile: Kartu Berstruktur Tabel */}
+        <CardMobileOnly>
+          {filteredStaff.length > 0 ? (
+            filteredStaff.map((item) => (
+              <MobileDataCard key={item.id}>
+                <MobileDataCardHeader
+                  media={
+                    <div className="flex h-12 w-12 items-center justify-center rounded-lg border border-border/80 bg-muted overflow-hidden">
+                      {item.imageUrl ? (
+                        <Image
+                          src={item.imageUrl}
+                          alt={item.name}
+                          width={48}
+                          height={48}
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <span className="text-base font-semibold text-muted-foreground">
+                          {item.name.charAt(0)}
+                        </span>
+                      )}
+                    </div>
+                  }
+                  title={item.name}
+                  subtitle={
+                    <span className="inline-flex items-center gap-1.5 font-medium text-primary">
+                      {item.position}
+                    </span>
+                  }
+                  action={
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-muted-foreground hover:text-primary"
+                        onClick={() => {
+                          setSelectedStaff(item);
+                          setDialog("edit");
+                        }}
+                      >
+                        <Pencil className="h-4 w-4" />
+                        <span className="sr-only">Edit</span>
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                        onClick={() => {
+                          setSelectedStaff(item);
+                          setDialog("delete");
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        <span className="sr-only">Hapus</span>
+                      </Button>
+                    </div>
+                  }
+                />
+                <MobileDataCardTable>
+                  <MobileDataCardRow label="Jabatan">
+                    <span className="font-medium text-foreground">
+                      {item.position}
+                    </span>
+                  </MobileDataCardRow>
+                  <MobileDataCardRow label="Mata Pelajaran">
+                    <span>{item.subject || "-"}</span>
+                  </MobileDataCardRow>
+                  <MobileDataCardRow label="Wali Kelas">
+                    {item.homeroomOf ? (
+                      <Badge variant="secondary" className="font-medium">
+                        {item.homeroomOf}
+                      </Badge>
+                    ) : (
+                      <span className="text-muted-foreground">-</span>
+                    )}
+                  </MobileDataCardRow>
+                </MobileDataCardTable>
+              </MobileDataCard>
+            ))
+          ) : (
+            <MobileEmptyCard message="Belum ada data staf yang sesuai." />
+          )}
+        </CardMobileOnly>
       </CardContent>
 
       {/* Dialogs */}
