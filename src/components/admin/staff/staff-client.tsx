@@ -284,28 +284,31 @@ export default function StaffClientPage({
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="text-2xl font-bold">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0">
+            <CardTitle className="text-xl font-bold sm:text-2xl">
               Kelola Guru & Staf
             </CardTitle>
-            <CardDescription className="mt-2 text-lg">
+            <CardDescription className="mt-1 text-sm sm:mt-2 sm:text-base">
               Tambah, edit, atau hapus data.
             </CardDescription>
           </div>
-          <Button onClick={() => setDialog("add")}>
+          <Button
+            onClick={() => setDialog("add")}
+            className="w-full shrink-0 sm:w-auto"
+          >
             <PlusCircle className="mr-2 h-4 w-4" /> Tambah Staf
           </Button>
         </div>
-        <div className="mt-4 flex items-center gap-4">
+        <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
           <Input
             placeholder="Cari nama..."
             value={search}
             onChange={(e) => startTransition(() => setSearch(e.target.value))}
-            className="max-w-sm"
+            className="w-full sm:max-w-xs"
           />
           <Select value={positionFilter} onValueChange={setPositionFilter}>
-            <SelectTrigger className="max-w-sm">
+            <SelectTrigger className="w-full sm:max-w-xs">
               <SelectValue placeholder="Filter jabatan" />
             </SelectTrigger>
             <SelectContent>
@@ -322,7 +325,7 @@ export default function StaffClientPage({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Foto</TableHead>
+              <TableHead className="hidden md:table-cell">Foto</TableHead>
               <TableHead>Nama</TableHead>
               <TableHead>Jabatan</TableHead>
               <TableHead>Wali Kelas</TableHead>
@@ -333,8 +336,8 @@ export default function StaffClientPage({
             {filteredStaff.length > 0 ? (
               filteredStaff.map((item) => (
                 <TableRow key={item.id}>
-                  <TableCell>
-                    <div className="w-10 h-10 rounded-md border bg-muted flex items-center justify-center">
+                  <TableCell className="max-md:mb-1">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-md border bg-muted md:h-10 md:w-10">
                       {item.imageUrl ? (
                         <Image
                           src={item.imageUrl}
@@ -350,11 +353,22 @@ export default function StaffClientPage({
                       )}
                     </div>
                   </TableCell>
-                  <TableCell className="font-medium">{item.name}</TableCell>
-                  <TableCell>{item.position}</TableCell>
-                  <TableCell>
+                  <TableCell
+                    mobileLabel="Nama"
+                    className="text-base font-semibold leading-snug md:text-sm md:font-medium"
+                  >
+                    <span className="break-words">{item.name}</span>
+                  </TableCell>
+                  <TableCell mobileLabel="Jabatan">
+                    <span className="break-words text-muted-foreground">
+                      {item.position}
+                    </span>
+                  </TableCell>
+                  <TableCell mobileLabel="Wali Kelas">
                     {item.homeroomOf ? (
-                      <Badge variant="secondary">{item.homeroomOf}</Badge>
+                      <Badge variant="secondary" className="whitespace-normal">
+                        {item.homeroomOf}
+                      </Badge>
                     ) : (
                       "-"
                     )}
@@ -391,7 +405,10 @@ export default function StaffClientPage({
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={5} className="h-24 text-center">
+                <TableCell
+                  colSpan={5}
+                  className="h-24 text-center max-md:block max-md:h-auto max-md:py-6"
+                >
                   Belum ada data.
                 </TableCell>
               </TableRow>

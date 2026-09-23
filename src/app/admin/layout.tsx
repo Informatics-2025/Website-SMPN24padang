@@ -87,15 +87,71 @@ export default function AdminLayout({
     const router = useRouter();
     const { toast } = useToast();
     const isMobile = useIsMobile();
+    // Desktop: sidebar terbuka (dikontrol tombol). Mobile: sidebar tertutup (drawer).
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+    const [isMobileOpen, setIsMobileOpen] = useState(false);
 
     useEffect(() => {
-        if (isMobile) {
-            setIsSidebarOpen(false);
-        } else {
+        if (!isMobile) {
             setIsSidebarOpen(true);
         }
+        setIsMobileOpen(false);
     }, [isMobile]);
+
+    // Tutup drawer mobile tiap kali pindah halaman
+    useEffect(() => {
+        setIsMobileOpen(false);
+    }, [pathname]);
+
+    // Kunci scroll body saat drawer mobile terbuka agar halaman di belakang
+    // tidak ikut bergeser (sidebar jadi tidak terlihat "mengambang").
+    useEffect(() => {
+        if (!(isMobile && isMobileOpen)) return;
+
+        const { overflow, paddingRight } = document.body.style;
+        const scrollbarWidth =
+            window.innerWidth - document.documentElement.clientWidth;
+
+        document.body.style.overflow = 'hidden';
+        if (scrollbarWidth > 0) {
+            document.body.style.paddingRight = `${scrollbarWidth}px`;
+        }
+
+        return () => {
+            document.body.style.overflow = overflow;
+            document.body.style.paddingRight = paddingRight;
+        };
+    }, [isMobile, isMobileOpen]);
+
+    // Geser ke atas: kalau user menyentuh/scroll area konten saat mode mobile,
+    // drawer otomatis tertutup.
+    useEffect(() => {
+        if (!(isMobile && isMobileOpen)) return;
+
+        let startY = 0;
+        let startX = 0;
+
+        const onTouchStart = (e: TouchEvent) => {
+            startY = e.touches[0].clientY;
+            startX = e.touches[0].clientX;
+        };
+
+        const onTouchMove = (e: TouchEvent) => {
+            const dy = e.touches[0].clientY - startY;
+            const dx = e.touches[0].clientX - startX;
+            // Sengaja menyentuh/scroll konten (bukan gesture geser horizontal)
+            if (Math.abs(dy) > 6 && Math.abs(dy) > Math.abs(dx)) {
+                setIsMobileOpen(false);
+            }
+        };
+
+        window.addEventListener('touchstart', onTouchStart, { passive: true });
+        window.addEventListener('touchmove', onTouchMove, { passive: true });
+        return () => {
+            window.removeEventListener('touchstart', onTouchStart);
+            window.removeEventListener('touchmove', onTouchMove);
+        };
+    }, [isMobile, isMobileOpen]);
 
     // Moved menuItems declaration before its usage
     const menuItems = [
@@ -200,19 +256,30 @@ export default function AdminLayout({
     return (
         <SidebarProvider>
             <div className="flex min-h-screen">
-                {/* Overlay for mobile */}
-                {isSidebarOpen && isMobile && (
-                    <div
-                        className="fixed inset-0 bg-black/50 z-40 transition-opacity duration-300 ease-in-out opacity-100"
-                        onClick={() => setIsSidebarOpen(false)}
-                    ></div>
-                )}
-
-                <Sidebar
-                    className={`h-screen fixed top-0 left-0 w-64 z-50 transition-transform duration-300 ease-in-out ${
-                        isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
-                    } md:translate-x-0 print:hidden`} // Always open on desktop
+                {/* Drawer container: fixed & full-height di mobile supaya sidebar
+                    mengunci ke viewport, tidak ikut ter-scroll bersama halaman. */}
+                <div
+                    className={`fixed inset-y-0 left-0 z-50 h-dvh transition-transform duration-300 ease-in-out md:static md:h-auto md:translate-x-0 ${
+                        isMobileOpen ? 'translate-x-0' : '-translate-x-full'
+                    } print:hidden`}
                 >
+                    {/* Overlay gelap hanya di mobile */}
+                    <div
+                        aria-hidden="true"
+                        onClick={() => setIsMobileOpen(false)}
+                        className={`absolute inset-0 bg-black/50 transition-opacity duration-300 md:hidden ${
+                            isMobileOpen
+                                ? 'opacity-100'
+                                : 'pointer-events-none opacity-0'
+                        }`}
+                    />
+
+                    <Sidebar
+                        onTouchMove={(e) => e.stopPropagation()}
+                        className={`relative z-10 h-full w-64 max-w-[85vw] md:transition-[width] ${
+                            isSidebarOpen ? 'md:w-64' : 'md:w-20'
+                        } print:hidden`}
+                    >
                     <SidebarHeader>
                         <div className="flex items-center justify-between w-full">
                             <div className="flex items-center gap-2">
@@ -324,7 +391,7 @@ export default function AdminLayout({
                                                                                     if (
                                                                                         isMobile
                                                                                     ) {
-                                                                                        setIsSidebarOpen(
+                                                                                        setIsMobileOpen(
                                                                                             false,
                                                                                         );
                                                                                     }
@@ -357,7 +424,7 @@ export default function AdminLayout({
                                             isActive={pathname === item.href}
                                             onClick={() => {
                                                 if (isMobile) {
-                                                    setIsSidebarOpen(false);
+                                                    setIsMobileOpen(false);
                                                 }
                                             }}
                                         >
@@ -379,7 +446,9 @@ export default function AdminLayout({
                                 onClick={handleLogout}
                             >
                                 <LogOut className="mr-2 h-4 w-4" />
-                                <span>Keluar</span>
+                                <span>
+                                    Keluar
+                                </span>
                             </Button>
                             <Button
                                 variant="outline"
@@ -390,15 +459,18 @@ export default function AdminLayout({
                             </Button>
                         </div>
                     </SidebarFooter>
-                </Sidebar>
+                    </Sidebar>
+                </div>
                 <div
-                    className={`flex flex-1 flex-col transition-all duration-300 ease-in-out ${
+                    className={`flex min-w-0 flex-1 flex-col transition-all duration-300 ease-in-out ${
                         isSidebarOpen ? 'md:ml-64' : 'md:ml-0'
                     } print:ml-0`}
                 >
                     <AdminHeader
                         isSidebarOpen={isSidebarOpen}
                         setIsSidebarOpen={setIsSidebarOpen}
+                        isMobileOpen={isMobileOpen}
+                        setIsMobileOpen={setIsMobileOpen}
                         menuItems={menuItems}
                         pathname={pathname}
                     />

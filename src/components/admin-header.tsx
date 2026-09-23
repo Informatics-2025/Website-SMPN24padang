@@ -13,13 +13,15 @@ interface AdminMenuItem {
 interface AdminHeaderProps {
   isSidebarOpen: boolean;
   setIsSidebarOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  isMobileOpen: boolean;
+  setIsMobileOpen: React.Dispatch<React.SetStateAction<boolean>>;
   menuItems: AdminMenuItem[];
   pathname: string;
 }
 
 const AdminHeader: React.FC<AdminHeaderProps> = ({
-  isSidebarOpen,
-  setIsSidebarOpen,
+  isMobileOpen,
+  setIsMobileOpen,
   menuItems,
   pathname,
 }) => {
@@ -29,7 +31,9 @@ const AdminHeader: React.FC<AdminHeaderProps> = ({
         variant="ghost"
         size="icon"
         className="md:hidden"
-        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+        aria-label="Buka menu"
+        aria-expanded={isMobileOpen}
+        onClick={() => setIsMobileOpen((prev) => !prev)}
       >
         <Menu className="h-6 w-6" />
         <span className="sr-only">Toggle sidebar</span>

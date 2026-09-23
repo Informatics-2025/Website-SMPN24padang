@@ -5,7 +5,9 @@ import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion"; // Pastikan framer-motion sudah terinstal
-import { ChevronDown, ChevronUp, LucideIcon, ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronDown, ChevronUp, ChevronLeft, ChevronRight } from "lucide-react";
+
+type SidebarIcon = React.ComponentType<React.SVGProps<SVGSVGElement>>;
 import { cn } from "@/lib/utils";
 import * as Collapsible from "@radix-ui/react-collapsible";
 
@@ -48,9 +50,12 @@ export function Sidebar({ className, children, ...props }: SidebarProps) {
   const { isCollapsed } = useSidebar();
   return (
     <aside
+      onTouchMove={(e) => e.stopPropagation()}
       className={cn(
         // Layout: flex column, full viewport height, no scroll on the aside itself
-        "flex flex-col h-screen overflow-hidden",
+        // h-dvh: pakai dynamic viewport height supaya tinggi tidak berubah saat
+        // address bar browser mobile muncul/hilang (penyebab sidebar terlihat "mengambang")
+        "flex flex-col h-dvh overflow-hidden overscroll-contain",
         // Light mode: green gradient
         "bg-gradient-to-b from-emerald-700 to-emerald-900",
         // Dark mode: soft dark (not harsh white)
@@ -183,7 +188,7 @@ export function SidebarMenuItem({
 }
 
 interface CommonSidebarMenuButtonProps {
-  icon?: LucideIcon;
+  icon?: SidebarIcon;
   isActive?: boolean;
   className?: string;
   isCollapsibleTrigger?: boolean; // New prop
@@ -213,33 +218,46 @@ export function SidebarMenuButton({
   const { isCollapsed } = useSidebar();
 
   const commonContent = (
-    <div className={cn("flex items-center", isCollapsed ? "gap-0" : "gap-2.5")}>
-      {Icon && (
-        <Icon
+    <div
+      className={cn(
+        "flex w-full min-w-0 items-center",
+        isCollapsed ? "gap-0" : "gap-2.5",
+        isCollapsibleTrigger && !isCollapsed ? "justify-between" : "justify-start"
+      )}
+    >
+      <span className="flex min-w-0 items-center gap-2.5">
+        {Icon && (
+          <Icon
+            className={cn(
+              "h-[18px] w-[18px] shrink-0",
+              isActive
+                ? "text-white"
+                : "text-emerald-100 dark:text-slate-300"
+            )}
+          />
+        )}
+        <span className={cn(isCollapsed ? "hidden" : "block truncate text-sm")}>
+          {children}
+        </span>
+      </span>
+      {isCollapsibleTrigger && (
+        <ChevronRight
           className={cn(
-            "h-[18px] w-[18px] shrink-0",
-            isActive
-              ? "text-white"
-              : "text-emerald-100 dark:text-slate-300"
+            "ml-auto h-4 w-4 shrink-0 transition-transform ease-in-out",
+            "text-emerald-200 dark:text-slate-400",
+            isMenuOpen ? "rotate-90" : ""
           )}
         />
       )}
-      <span className={cn(isCollapsed ? "hidden" : "block truncate text-sm")}>
-        {children}
-      </span>
     </div>
   );
 
   const commonClassName = cn(
-    "flex items-center w-full px-3 py-2 rounded-lg transition-all duration-150",
+    "flex items-center w-full min-w-0 px-3 py-2 rounded-lg transition-all duration-150 touch-manipulation",
     isActive
       ? "bg-white/20 text-white font-semibold shadow-sm"
       : "text-emerald-50 dark:text-slate-300 hover:bg-white/10 dark:hover:bg-slate-700/60",
-    isCollapsed
-      ? "justify-center"
-      : isCollapsibleTrigger
-      ? "justify-between"
-      : "justify-start",
+    isCollapsed ? "justify-center" : "justify-start",
     className
   );
 
@@ -261,15 +279,6 @@ export function SidebarMenuButton({
         {...(props as React.ButtonHTMLAttributes<HTMLButtonElement>)}
       >
         {commonContent}
-        {isCollapsibleTrigger && (
-          <ChevronRight
-            className={cn(
-              "ml-auto h-4 w-4 shrink-0 transition-transform ease-in-out",
-              "text-emerald-200 dark:text-slate-400",
-              isMenuOpen ? "rotate-90" : ""
-            )}
-          />
-        )}
       </button>
     );
   }
@@ -319,7 +328,7 @@ export function SidebarMenuSubButton({
     <Link
       href={href}
       className={cn(
-        "flex items-center px-3 py-1.5 pl-8 rounded-lg transition-all duration-150 text-sm",
+        "flex items-center px-3 py-2 pl-8 rounded-lg transition-all duration-150 text-sm touch-manipulation",
         isActive
           ? "bg-white/20 text-white font-medium"
           : "text-emerald-100/80 dark:text-slate-400 hover:bg-white/10 dark:hover:bg-slate-700/60 hover:text-white",
