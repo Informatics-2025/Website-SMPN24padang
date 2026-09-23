@@ -49,8 +49,14 @@ export function Sidebar({ className, children, ...props }: SidebarProps) {
   return (
     <aside
       className={cn(
-        "relative flex flex-col h-screen bg-white dark:bg-gray-800 shadow-lg transition-all duration-300 ease-in-out",
-        isCollapsed ? "w-20 rounded-md" : "w-64 rounded-md",
+        // Layout: flex column, full viewport height, no scroll on the aside itself
+        "flex flex-col h-screen overflow-hidden",
+        // Light mode: green gradient
+        "bg-gradient-to-b from-emerald-700 to-emerald-900",
+        // Dark mode: soft dark (not harsh white)
+        "dark:from-slate-800 dark:to-slate-900",
+        "shadow-xl transition-all duration-300 ease-in-out",
+        isCollapsed ? "w-20" : "w-64",
         className
       )}
       data-state={isCollapsed ? "collapsed" : "expanded"}
@@ -69,7 +75,8 @@ export function SidebarHeader({
   return (
     <div
       className={cn(
-        "flex items-center p-4 border-b border-gray-200 dark:border-gray-700",
+        "flex items-center p-4 shrink-0",
+        "border-b border-emerald-600/50 dark:border-slate-700",
         className
       )}
       {...props}
@@ -85,7 +92,8 @@ export function SidebarContent({
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) {
   return (
-    <div className={cn("flex-1 overflow-y-auto p-4", className)} {...props}>
+    // flex-1 + min-h-0 + overflow-y-auto: menu scrolls inside, footer stays pinned
+    <div className={cn("flex-1 min-h-0 overflow-y-auto p-3", className)} {...props}>
       {children}
     </div>
   );
@@ -97,9 +105,11 @@ export function SidebarFooter({
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) {
   return (
+    // shrink-0: footer never gets pushed off screen
     <div
       className={cn(
-        "p-4 border-t border-gray-200 dark:border-gray-700",
+        "p-4 shrink-0",
+        "border-t border-emerald-600/50 dark:border-slate-700",
         className
       )}
       {...props}
@@ -118,7 +128,9 @@ export function SidebarTrigger({
     <button
       onClick={() => setIsCollapsed(!isCollapsed)}
       className={cn(
-        "p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors",
+        "p-2 rounded-md transition-colors",
+        "hover:bg-white/10 dark:hover:bg-slate-700",
+        "text-white/80 hover:text-white",
         className
       )}
       {...props}
@@ -140,7 +152,7 @@ export function SidebarMenu({
   ...props
 }: React.HTMLAttributes<HTMLUListElement>) {
   return (
-    <ul className={cn("space-y-1", className)} {...props}>
+    <ul className={cn("space-y-0.5", className)} {...props}>
       {children}
     </ul>
   );
@@ -201,19 +213,33 @@ export function SidebarMenuButton({
   const { isCollapsed } = useSidebar();
 
   const commonContent = (
-    <div className={cn("flex items-center", isCollapsed ? "gap-0" : "gap-2")}>
-      {Icon && <Icon className={cn("h-5 w-5", isCollapsed && "mr-0")} />}
-      <span className={cn(isCollapsed ? "hidden" : "block")}>
+    <div className={cn("flex items-center", isCollapsed ? "gap-0" : "gap-2.5")}>
+      {Icon && (
+        <Icon
+          className={cn(
+            "h-[18px] w-[18px] shrink-0",
+            isActive
+              ? "text-white"
+              : "text-emerald-100 dark:text-slate-300"
+          )}
+        />
+      )}
+      <span className={cn(isCollapsed ? "hidden" : "block truncate text-sm")}>
         {children}
       </span>
     </div>
   );
 
   const commonClassName = cn(
-    "flex items-center w-full p-2 rounded-md transition-colors duration-200",
-    "hover:bg-gray-100 dark:hover:bg-gray-700",
-    isActive && "bg-gray-100 dark:bg-gray-700 font-bold",
-    isCollapsed ? "justify-center" : (isCollapsibleTrigger ? "justify-between" : "justify-start"),
+    "flex items-center w-full px-3 py-2 rounded-lg transition-all duration-150",
+    isActive
+      ? "bg-white/20 text-white font-semibold shadow-sm"
+      : "text-emerald-50 dark:text-slate-300 hover:bg-white/10 dark:hover:bg-slate-700/60",
+    isCollapsed
+      ? "justify-center"
+      : isCollapsibleTrigger
+      ? "justify-between"
+      : "justify-start",
     className
   );
 
@@ -236,10 +262,13 @@ export function SidebarMenuButton({
       >
         {commonContent}
         {isCollapsibleTrigger && (
-          <ChevronRight className={cn(
-            "ml-auto h-4 w-4 shrink-0 transition-transform ease-in-out",
-            isMenuOpen ? "rotate-90" : ""
-          )} />
+          <ChevronRight
+            className={cn(
+              "ml-auto h-4 w-4 shrink-0 transition-transform ease-in-out",
+              "text-emerald-200 dark:text-slate-400",
+              isMenuOpen ? "rotate-90" : ""
+            )}
+          />
         )}
       </button>
     );
@@ -251,10 +280,8 @@ export function SidebarMenuSub({
   children,
   ...props
 }: React.HTMLAttributes<HTMLUListElement>) {
-  // This component will be wrapped by AnimatePresence and motion.ul in layout.tsx
-  // The animation logic is applied where Collapsible.Content is used.
   return (
-    <ul className={cn("space-y-1", className)} {...props}>
+    <ul className={cn("space-y-0.5 mt-0.5", className)} {...props}>
       {children}
     </ul>
   );
@@ -268,13 +295,7 @@ export function SidebarMenuSubItem({
   ...props
 }: SidebarMenuSubItemProps) {
   return (
-    <li
-      className={cn(
-        "border-t border-gray-200 dark:border-gray-700 first:border-t-0", // Thin separator
-        className
-      )}
-      {...props}
-    >
+    <li className={cn(className)} {...props}>
       {children}
     </li>
   );
@@ -298,9 +319,10 @@ export function SidebarMenuSubButton({
     <Link
       href={href}
       className={cn(
-        "block p-2 pl-6 rounded-md transition-colors duration-200 text-sm",
-        "hover:bg-gray-100 dark:hover:bg-gray-700",
-        isActive && "bg-gray-100 dark:bg-gray-700",
+        "flex items-center px-3 py-1.5 pl-8 rounded-lg transition-all duration-150 text-sm",
+        isActive
+          ? "bg-white/20 text-white font-medium"
+          : "text-emerald-100/80 dark:text-slate-400 hover:bg-white/10 dark:hover:bg-slate-700/60 hover:text-white",
         className
       )}
       {...props}

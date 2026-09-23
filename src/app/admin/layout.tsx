@@ -214,15 +214,16 @@ export default function AdminLayout({
                     } md:translate-x-0 print:hidden`} // Always open on desktop
                 >
                     <SidebarHeader>
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center mr-16">
+                        <div className="flex items-center justify-between w-full">
+                            <div className="flex items-center gap-2">
                                 <Image
                                     src="/logo.png"
                                     alt="Logo"
                                     width={32}
                                     height={32}
+                                    className="rounded-sm"
                                 />
-                                <span className="text-lg font-semibold text-primary ml-2 group-data-[state=collapsed]:hidden">
+                                <span className="text-lg font-semibold text-white ml-1 group-data-[state=collapsed]:hidden">
                                     Admin
                                 </span>
                             </div>
@@ -231,7 +232,7 @@ export default function AdminLayout({
                                     href="/admin/profile"
                                     className="group-data-[state=collapsed]:hidden"
                                 >
-                                    <UserCircle className="h-6 w-6 text-muted-foreground hover:text-primary" />
+                                    <UserCircle className="h-6 w-6 text-white/70 hover:text-white transition-colors" />
                                 </Link>
                             </div>
                         </div>
@@ -369,28 +370,24 @@ export default function AdminLayout({
                     </SidebarContent>
                     <SidebarFooter>
                         <div className="flex flex-col gap-2 w-full">
-                            <div className="flex items-center justify-between group-data-[state=collapsed]:justify-center">
+                            <div className="flex items-center justify-between">
                                 <ThemeToggle />
                             </div>
                             <Button
                                 variant="destructive"
-                                className="w-full justify-start group-data-[state=collapsed]:justify-center"
+                                className="w-full justify-start bg-red-500/80 hover:bg-red-500 text-white border-0"
                                 onClick={handleLogout}
                             >
                                 <LogOut className="mr-2 h-4 w-4" />
-                                <span className="group-data-[state=collapsed]:hidden">
-                                    Keluar
-                                </span>
+                                <span>Keluar</span>
                             </Button>
-                            <div className="flex items-center justify-between group-data-[state=collapsed]:justify-center">
-                                <Button
-                                    variant="outline"
-                                    asChild
-                                    className="w-full justify-start group-data-[state=collapsed]:justify-center"
-                                >
-                                    <Link href="/">Halaman Utama</Link>
-                                </Button>
-                            </div>
+                            <Button
+                                variant="outline"
+                                asChild
+                                className="w-full justify-start border-white/30 text-white hover:bg-white/10 hover:text-white bg-transparent"
+                            >
+                                <Link href="/">Halaman Utama</Link>
+                            </Button>
                         </div>
                     </SidebarFooter>
                 </Sidebar>
