@@ -16,8 +16,8 @@ Proyek ini dirancang tidak hanya sebagai sumber informasi, tetapi sebagai sebuah
 
 ## 📜 Lisensi & Arsitektur
 
--   **Lisensi**: Proyek ini dilisensikan di bawah **[MIT License](LICENSE)**. Anda bebas menggunakan, memodifikasi, dan mendistribusikan kode ini dengan menyertakan pemberitahuan hak cipta asli.
--   **Arsitektur**: Untuk pemahaman mendalam mengenai struktur teknis, dependensi, dan pola desain yang digunakan, silakan merujuk ke dokumen **[architecture.md](architecture.md)**.
+- **Lisensi**: Proyek ini dilisensikan di bawah **[MIT License](LICENSE)**. Anda bebas menggunakan, memodifikasi, dan mendistribusikan kode ini dengan menyertakan pemberitahuan hak cipta asli.
+- **Arsitektur**: Untuk pemahaman mendalam mengenai struktur teknis, dependensi, dan pola desain yang digunakan, silakan merujuk ke dokumen **[architecture.md](architecture.md)**.
 
 ---
 
@@ -36,9 +36,9 @@ Kualitas sebuah bangunan digital ditentukan oleh fondasinya. Proyek ini dibangun
 
 ---
 
-## 🌟 Tim Pengembang: Talenta di Balik Proyek
+## 🌟 Tim Pengembang
 
-Proyek ini merupakan hasil kolaborasi mahasiswa yang bekerja sama dengan penuh tanggung jawab untuk menghadirkan solusi digital bagi SMP Negeri 24 Padang.  
+Proyek ini merupakan hasil kolaborasi mahasiswa yang bekerja sama dengan penuh tanggung jawab untuk menghadirkan solusi digital bagi SMP Negeri 24 Padang.
 Setiap anggota tim memiliki peran dan kontribusi yang saling melengkapi, sehingga proyek ini dapat terselesaikan dengan baik dan menjadi pengalaman berharga bagi semua yang terlibat.
 
 | Nama                       | Peran                               | Tanggung Jawab                                                                                                                                                                    |
@@ -84,9 +84,9 @@ Arsitektur proyek ini dirancang agar modular, mudah dipahami, dan skalabel untuk
 
 Keberhasilan proyek ini tidak lepas dari dukungan, bimbingan, dan kepercayaan yang luar biasa dari berbagai pihak. Dengan tulus, kami mengucapkan terima kasih kepada:
 
--   **Ibu Hasyuni Harti, M.Pd**, selaku Kepala Sekolah SMPN 24 Padang, atas kesempatan dan kepercayaan yang diberikan kepada kami.
--   **Bapak Muhammad Rajab, MA**, selaku Wakil Kurikulum, atas arahan dan bimbingan yang sangat berharga selama proses pengembangan.
--   Seluruh **staf Tata Usaha dan majelis guru** atas pengalaman yang diberikan selama masa PKL.
--   Rekan-rekan **PLK guru muda Universitas Negeri Padang** periode Juli-Desember 2025, atas kolaborasi dan semangat kebersamaannya.
+- **Ibu Hasyuni Harti, M.Pd**, selaku Kepala Sekolah SMPN 24 Padang, atas kesempatan dan kepercayaan yang diberikan kepada kami.
+- **Bapak Muhammad Rajab, MA**, selaku Wakil Kurikulum, atas arahan dan bimbingan yang sangat berharga selama proses pengembangan.
+- Seluruh **staf Tata Usaha dan majelis guru** atas pengalaman yang diberikan selama masa PKL.
+- Rekan-rekan **PLK guru muda Universitas Negeri Padang** periode Juli-Desember 2025, atas kolaborasi dan semangat kebersamaannya.
 
 Kolaborasi ini adalah pengalaman yang tak ternilai bagi kami. Semoga website ini dapat menjadi jembatan digital yang bermanfaat bagi seluruh warga sekolah.
